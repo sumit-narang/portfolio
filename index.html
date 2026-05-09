@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sumit Narang — Product Designer</title>
+<meta name="description" content="Product designer based in Dublin, Ireland.">
+
+<!-- Open Graph -->
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="Sumit Narang — Product Designer">
+<meta property="og:description" content="Product designer based in Dublin, Ireland.">
+<meta property="og:url"         content="https://sumitnarang.com">
+<meta property="og:image"       content="https://sumitnarang.com/og/og-image.png">
+
+<!-- Twitter / X -->
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="Sumit Narang — Product Designer">
+<meta name="twitter:description" content="Product designer based in Dublin, Ireland.">
+<meta name="twitter:image"       content="https://sumitnarang.com/og/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+img { -webkit-touch-callout: none; user-select: none; pointer-events: none; }
+body { background:#000; overflow:hidden; }
+@media (max-width: 768px) { body { background: #d6bc8a; } }
+canvas { display:block; }
+#wavesMuteBtn {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.20); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s; pointer-events: all;
+}
+#wavesMuteBtn:hover { background: rgba(0,0,0,0.65); }
+@keyframes modalBackdropIn  { from { opacity:0 } to { opacity:1 } }
+@keyframes modalBackdropOut { from { opacity:1 } to { opacity:0 } }
+@keyframes modalCardIn  {
+  from { opacity:0; transform:translateY(16px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0)    scale(1);    }
+}
+@keyframes modalCardOut {
+  from { opacity:1; transform:translateY(0)    scale(1);    }
+  to   { opacity:0; transform:translateY(16px) scale(0.97); }
+}
+
+/* closing state — overrides the open animations */
+.modal-closing { animation: modalBackdropOut 0.25s ease-out forwards !important; }
+.modal-closing #aboutCard,
+.modal-closing #projectsCard {
+  animation: modalCardOut 0.25s ease-out forwards !important;
+}
+@keyframes floatNote {
+  0%   { opacity:0; transform:translate(-50%,0) scale(0.7); }
+  18%  { opacity:1; }
+  100% { opacity:0; transform:translate(calc(-50% + var(--dx,0px)),-85px) scale(1.1); }
+}
+.music-note {
+  position:fixed; pointer-events:none; z-index:500;
+  font-size:20px; color:#fff;
+  text-shadow:0 1px 4px rgba(0,0,0,0.6);
+  animation:floatNote 1.5s ease-out forwards;
+}
+/* ── Hover label base ────────────────────────────────────────── */
+#hoverLabel, .hoverLabel {
+  position:fixed; pointer-events:none;
+  font: italic 500 18px/1 'Georgia', serif;
+  color: #2a1f0e;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  transform: translate(-50%, -130%);
+  white-space: nowrap;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+}
+#hoverLabel.visible, .hoverLabel.visible { opacity: 1; }
+@media (max-width: 1080px) {
+  #hoverLabel, .hoverLabel { pointer-events: auto; cursor: pointer; }
+}
+
+
+</style>
+</head>
+<body>
+
+
+<script>
+window._labelOffsets        = { bag: { x: 18, y: 16  }, sign: { x: 3, y: -22 }, chair: { x:  0, y:  -8 } };
+window._mobileLabelOffsets  = { bag: { x: -4, y: 100 }, sign: { x: 5, y:  89 }, chair: { x:  0, y:  84 } };
+window._tabletLabelOffsets  = { bag: { x: -4, y:  33 }, sign: { x: 0, y: 158 }, chair: { x:  0, y: 108 } };
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// ── Renderer ─────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog  = new THREE.Fog(0xd8eef5, 80, 200);
+
+// ── Camera ────────────────────────────────────────────────────
+const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 1.0, 500);
+camera.position.set(-73.3, 29.1, 1.6);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(2.5, 0.0, 0.0);
+window._camera = camera;
+window._controls = controls;
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minAzimuthAngle = -94 * Math.PI / 180;
+controls.maxAzimuthAngle = -83 * Math.PI / 180;
+controls.minPolarAngle   =  64 * Math.PI / 180;
+controls.maxPolarAngle   =  74 * Math.PI / 180;
+controls.minDistance     = 79;
+controls.maxDistance     = 86;
+controls.update();
+
+// ── Sky dome ─────────────────────────────────────────────────
+// Sun upper-left: slight forward (+X), high up (+Y), left (-Z)
+const SKY_SUN = new THREE.Vector3(0.20, 0.75, -0.63).normalize();
+const skyMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide,
+  uniforms: {
+    uTop:    { value: new THREE.Color(0x1a6fbf) },
+    uMid:    { value: new THREE.Color(0x5aaede) },
+    uHorizon:{ value: new THREE.Color(0xf5e4c0) },
+    uSunDir: { value: SKY_SUN },
+  },
+  vertexShader:`
+    varying vec3 vP;
+    void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1); }
+  `,
+  fragmentShader:`
+    uniform vec3 uTop,uMid,uHorizon,uSunDir;
+    varying vec3 vP;
+    void main(){
+      vec3 dir=normalize(vP);
+      float t=clamp(dir.y,0.,1.);
+
+      // Three-stop gradient: horizon → mid → top
+      vec3 c=mix(mix(uHorizon,uMid,pow(t,0.4)),uTop,pow(t,1.2));
+
+      // Warm orange haze band near horizon
+      float haze=exp(-t*7.0);
+      c=mix(c,vec3(1.0,0.72,0.38),haze*0.55);
+
+      // Sun: wide glow → soft outer disc → sharp inner disc
+      float sd=dot(dir,uSunDir);
+      float glow=pow(max(sd,0.0),6.0);
+      c=mix(c,vec3(1.0,0.88,0.5),glow*0.9);
+
+      float outerDisc=smoothstep(0.988,0.997,sd);   // soft halo edge
+      float innerDisc=smoothstep(0.997,0.9992,sd);  // bright body
+      float core     =smoothstep(0.9992,0.9998,sd); // white centre
+      c=mix(c,vec3(1.0,0.93,0.55),outerDisc);
+      c=mix(c,vec3(1.0,0.97,0.70),innerDisc);
+      c=mix(c,vec3(1.0,1.0,0.95),core);
+
+      gl_FragColor=vec4(c,1.);
+    }
+  `,
+});
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(400,32,16), skyMat));
+
+// ── Lighting ─────────────────────────────────────────────────
+const sunDir = SKY_SUN.clone();
+scene.add(new THREE.AmbientLight(0xb8d8e8, 0.7));
+const sun = new THREE.DirectionalLight(0xfff4d8, 2.8);
+sun.position.copy(sunDir).multiplyScalar(120);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-80,right:80,top:80,bottom:-80,near:1,far:250});
+scene.add(sun);
+
+// ── Gerstner waves — travel toward shore (-X) ────────────────
+const WAVES = [
+  [0.30,14.0,-1.00, 0.00,0.52],
+  [0.20, 9.0,-0.98, 0.18,0.48],
+  [0.16, 6.0,-0.98,-0.18,0.42],
+  [0.11, 3.8,-0.94, 0.34,0.38],
+  [0.09, 2.4,-0.94,-0.34,0.32],
+  [0.07, 1.6,-0.99, 0.14,0.28],
+  [0.05, 1.1,-0.97, 0.26,0.22],
+  [0.04, 0.7,-0.97,-0.26,0.18],
+];
+
+const waterUniforms = {
+  uTime:       { value:0 },
+  uWaveH:      { value:0.60 },
+  uSpeed:      { value:0.80 },
+  uChop:       { value:1.00 },
+  uWindAngle:  { value:0.0 },
+  uShoreAmp:   { value:0.0 },
+  uShoreOffset:{ value:7.0 },
+  uShoreSpeed: { value:0.0 },
+  uFoamAmt:    { value:0.0 },
+  uSwashAmt:   { value:0.60 },
+  uSunDir:     { value:sunDir },
+  uSkyTop:     { value:new THREE.Color(0x5b9fd4) },
+  uSkyHorizon: { value:new THREE.Color(0xd8eef5) },
+  uDeepCol:    { value:new THREE.Color(0x1a8fb0) },
+  uShallowCol: { value:new THREE.Color(0x5cd8e4) },
+  uFoamCol:    { value:new THREE.Color(0xf0faff) },
+  uAmps:  { value:WAVES.map(w=>w[0]) },
+  uLens:  { value:WAVES.map(w=>w[1]) },
+  uDirX:  { value:WAVES.map(w=>w[2]) },
+  uDirZ:  { value:WAVES.map(w=>w[3]) },
+  uSteep: { value:WAVES.map(w=>w[4]) },
+};
+
+const waterVert = `
+  #define NW 8
+  uniform float uTime,uWaveH,uSpeed,uChop,uWindAngle;
+  uniform float uAmps[NW],uLens[NW],uDirX[NW],uDirZ[NW],uSteep[NW];
+  varying vec3 vPos,vNormal; varying float vFoam;
+  vec3 gerstner(vec3 p){
+    vec3 d=vec3(0.); float cA=cos(uWindAngle),sA=sin(uWindAngle);
+    for(int i=0;i<NW;i++){
+      float A=uAmps[i]*uWaveH,L=uLens[i],k=6.28318/L;
+      float dx=uDirX[i]*cA-uDirZ[i]*sA,dz=uDirX[i]*sA+uDirZ[i]*cA;
+      float ph=k*(dx*p.x+dz*p.z)-uSpeed*sqrt(9.81*k)*uTime;
+      float Q=uChop*uSteep[i]/(k*A*float(NW));
+      d.x+=Q*A*dx*cos(ph);d.z+=Q*A*dz*cos(ph);d.y+=A*sin(ph);
+    } return d;
+  }
+  vec3 gerstnerN(vec3 p,float e){
+    vec3 px=p+vec3(e,0,0)+gerstner(p+vec3(e,0,0));
+    vec3 mx=p-vec3(e,0,0)+gerstner(p-vec3(e,0,0));
+    vec3 pz=p+vec3(0,0,e)+gerstner(p+vec3(0,0,e));
+    vec3 mz=p-vec3(0,0,e)+gerstner(p-vec3(0,0,e));
+    return normalize(cross(pz-mz,px-mx));
+  }
+  void main(){
+    vec3 p=position,disp=gerstner(p),wPos=p+disp;
+    vPos=wPos; vNormal=gerstnerN(p,0.18);
+    vFoam=smoothstep(0.5,1.4,disp.y/max(uWaveH,0.01));
+    gl_Position=projectionMatrix*modelViewMatrix*vec4(wPos,1.);
+  }
+`;
+
+const waterFrag = `
+  uniform vec3 uSunDir,uSkyTop,uSkyHorizon,uDeepCol,uShallowCol,uFoamCol;
+  uniform float uTime,uShoreAmp,uShoreOffset,uShoreSpeed,uFoamAmt,uSwashAmt;
+  varying vec3 vPos,vNormal; varying float vFoam;
+  float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
+  float fbm(vec2 p){float v=0.,a=0.5;for(int i=0;i<4;i++){v+=a*hash(p);p=p*2.1+vec2(1.3,2.7);a*=.5;}return v;}
+  float shoreEdge(float z,float t){
+    t*=uShoreSpeed;
+    return (sin(z*0.048+t*0.18)*5.0
+           +sin(z*0.119-t*0.13)*3.0
+           +sin(z*0.027+t*0.07)*6.5
+           +sin(z*0.073-t*0.09)*2.0)*uShoreAmp+uShoreOffset;
+  }
+  void main(){
+    vec3 N=normalize(vNormal),V=normalize(cameraPosition-vPos),L=normalize(uSunDir),H=normalize(L+V);
+    float fr=0.04+0.96*pow(1.-clamp(dot(N,V),0.,1.),3.5);
+    vec3 skyCol=mix(uSkyHorizon,uSkyTop,clamp(reflect(-V,N).y*2.5,0.,1.));
+    vec3 waterCol=mix(uShallowCol,uDeepCol,clamp(vPos.y*0.5+0.5,0.,1.));
+    waterCol+=vec3(0.12,0.50,0.55)*pow(clamp(dot(L,-N),0.,1.),2.5)*0.35;
+    float spec=pow(clamp(dot(N,H),0.,1.),260.)*3.5;
+    vec3 col=mix(waterCol,skyCol,fr)+vec3(1.,.97,.9)*spec;
+    float foamTex=fbm(vPos.xz*1.6+vec2(uTime*0.05,0.));
+    col=mix(col,uFoamCol.rgb,smoothstep(0.15,0.55,vFoam*foamTex*2.8)*0.92);
+    float se=shoreEdge(vPos.z,uTime);
+    float rollingFoam=0.;
+    for(int i=0;i<6;i++){
+      float fi=float(i);
+      float phase=fract(vPos.x*0.072-uTime*0.30+fi*0.1667);
+      float band=smoothstep(0.,0.06,phase)*smoothstep(0.22,0.06,phase);
+      float zwob=sin(vPos.z*0.12+fi*2.3+uTime*0.08)*0.5+0.5;
+      float amp=1.-smoothstep(0.,35.,vPos.x-se);
+      float ft=fbm(vPos.xz*2.8+vec2(uTime*0.18+fi*0.4,fi));
+      rollingFoam+=band*amp*(0.5+0.5*zwob)*(0.55+0.45*ft);
+    }
+    col=mix(col,vec3(0.97,1.,1.),clamp(rollingFoam,0.,1.)*0.94*uFoamAmt);
+    float swash=1.-smoothstep(0.,5.,vPos.x-se);
+    col=mix(col,vec3(0.95,.99,1.),clamp(swash*fbm(vPos.xz*2.+vec2(uTime*.32,uTime*.14))*2.5,0.,1.)*0.82*uSwashAmt);
+    col=mix(col,vec3(0.72,0.82,0.70),(1.-smoothstep(0.,22.,vPos.x-se))*0.18);
+    col=mix(col,uSkyHorizon,smoothstep(60.,140.,length(vPos.xz))*0.55);
+    gl_FragColor=vec4(col,1.);
+  }
+`;
+
+const waterGeo = new THREE.PlaneGeometry(90,500,200,300);
+waterGeo.rotateX(-Math.PI/2);
+const waterMesh = new THREE.Mesh(waterGeo, new THREE.ShaderMaterial({
+  uniforms:waterUniforms, vertexShader:waterVert, fragmentShader:waterFrag
+}));
+waterMesh.position.x = 45;
+scene.add(waterMesh);
+
+// ── Sand ─────────────────────────────────────────────────────
+const sandMat = new THREE.ShaderMaterial({
+  polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
+  uniforms:{
+    uTime:       { value:0 },
+    uShoreAmp:   { value:0.0 },
+    uShoreOffset:{ value:7.0 },
+    uShoreSpeed: { value:0.0 },
+    uSunDir:     { value:sunDir },
+    uSkyHorizon: { value:new THREE.Color(0xd8eef5) },
+  },
+  vertexShader:`
+    varying vec3 vWP;
+    void main(){
+      vWP=(modelMatrix*vec4(position,1.)).xyz;
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);
+    }
+  `,
+  fragmentShader:`
+    uniform float uTime,uShoreAmp,uShoreOffset,uShoreSpeed;
+    uniform vec3 uSunDir,uSkyHorizon;
+    varying vec3 vWP;
+    float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
+    float fbm(vec2 p){float v=0.,a=0.52;for(int i=0;i<5;i++){v+=a*hash(p);p=p*2.2+vec2(1.7,3.1);a*=.48;}return v;}
+    float ridge(vec2 p){float n=fbm(p);return 1.0-abs(n*2.0-1.0);}
+    float sandHeight(vec2 p){
+      float dunes = fbm(p*0.05)*1.35 + fbm(p*0.11+vec2(2.1,4.7))*0.7;
+      vec2 rp = vec2(p.x*0.55, p.y*1.55) + vec2(0.6,1.3);
+      float ripples = ridge(rp*0.95)*0.62;
+      float grains = fbm(p*2.7)*0.08;
+      return dunes + ripples + grains;
+    }
+    float shoreEdge(float z,float t){
+      t*=uShoreSpeed;
+      return (sin(z*0.048+t*0.18)*5.0
+             +sin(z*0.119-t*0.13)*3.0
+             +sin(z*0.027+t*0.07)*6.5
+             +sin(z*0.073-t*0.09)*2.0)*uShoreAmp+uShoreOffset;
+    }
+    void main(){
+      float se=shoreEdge(vWP.z,uTime);
+      if(vWP.x>se+0.5) discard;
+      vec2 p=vWP.xz;
+      float h=sandHeight(p);
+      float e=0.35;
+      float hx=sandHeight(p+vec2(e,0.0));
+      float hz=sandHeight(p+vec2(0.0,e));
+      vec3 N=normalize(vec3(h-hx, 0.65, h-hz));
+      vec3 L=normalize(uSunDir);
+      vec3 V=normalize(cameraPosition - vWP);
+      vec3 H=normalize(L+V);
+
+      float n=fbm(p*0.24),n2=fbm(p*1.2+vec2(4.2,1.8));
+      vec3 sandBase=mix(vec3(0.98,0.94,0.84),vec3(0.90,0.85,0.74),n*0.7+n2*0.3);
+
+      sandBase-=fbm(p*5.2)*0.06;
+
+      float pebble=step(0.78,fbm(p*9.))*step(0.6,fbm(p*5.5+vec2(2.1)));
+      sandBase=mix(sandBase,sandBase*0.72+vec3(0.04,0.02,-0.02),pebble*0.5);
+
+      float wetFac=1.-smoothstep(se-16.,se+1.0,vWP.x);
+      vec3 wetTint=sandBase*0.78+vec3(0.01,0.04,0.06);
+      vec3 sand=mix(sandBase,wetTint,wetFac*0.9);
+
+      float diffuse=max(dot(N,L),0.0);
+      float back=pow(max(dot(N,-L),0.0),2.0)*0.08;
+      float spec=pow(max(dot(N,H),0.0),40.0)*(0.3+wetFac*1.1);
+      float sparkle=pow(fbm(p*18.0),9.0)*0.55;
+
+      vec3 ambient=mix(vec3(0.78,0.86,0.92),uSkyHorizon,0.55);
+      vec3 col=sand*(0.6+0.85*diffuse)+ambient*0.22+back;
+      col+=vec3(1.0,0.97,0.88)*spec;
+      col+=vec3(1.0,0.95,0.85)*sparkle*(0.4+wetFac*0.6);
+      col-=smoothstep(0.58,0.65,fbm(p*0.18+vec2(1.3))*fbm(p*0.12)*2.5)*0.18;
+      gl_FragColor=vec4(clamp(col,0.,1.),1.);
+    }
+  `,
+});
+
+const sandGeo = new THREE.PlaneGeometry(200,500,180,200);
+sandGeo.rotateX(-Math.PI/2);
+const sandMesh = new THREE.Mesh(sandGeo, sandMat);
+sandMesh.receiveShadow = true;
+sandMesh.position.x = -40;
+sandMesh.position.y = 0.015;
+scene.add(sandMesh);
+
+
+// ── Wes Anderson color grading for sprites ───────────────────
+const _wesUniforms = {
+  uWarmth:  { value: 0.55 },
+  uSat:     { value: 0.85 },
+  uFade:    { value: 0.08 },
+  uPastel:  { value: 0.22 },
+};
+window._wesUniforms = _wesUniforms;
+
+const _wesMaterials = [];
+
+function _applyWes(mat) {
+  mat.onBeforeCompile = shader => {
+    shader.uniforms.uWarmth  = _wesUniforms.uWarmth;
+    shader.uniforms.uSat     = _wesUniforms.uSat;
+    shader.uniforms.uFade    = _wesUniforms.uFade;
+    shader.uniforms.uPastel  = _wesUniforms.uPastel;
+    shader.fragmentShader = `
+      uniform float uWarmth, uSat, uFade, uPastel;
+      vec3 wesGrade(vec3 c) {
+        c = c * (1.0 - uFade) + uFade * vec3(0.13, 0.10, 0.09);
+        float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
+        c = mix(vec3(lum), c, uSat);
+        c += uWarmth * vec3(0.09, 0.05, -0.07) * (1.0 - abs(c * 2.0 - 1.0));
+        float hi = smoothstep(0.38, 0.88, dot(c, vec3(0.333)));
+        c = mix(c, c * 0.80 + vec3(0.18, 0.15, 0.12), uPastel * hi);
+        return clamp(c, 0.0, 1.0);
+      }
+    ` + shader.fragmentShader;
+    // Target the specific sprite shader line — more reliable than chunk include
+    shader.fragmentShader = shader.fragmentShader.replace(
+      'outgoingLight = diffuseColor.rgb;',
+      'outgoingLight = wesGrade(diffuseColor.rgb);'
+    );
+    mat._wesShader = shader;
+  };
+  mat.customProgramCacheKey = () => 'wesAnderson';
+  _wesMaterials.push(mat);
+}
+window._wesMaterials = _wesMaterials;
+
+// ── Bag (PNG sprite) ─────────────────────────────────────────
+const _bagSprite = new THREE.Sprite();
+_bagSprite.scale.set(8, 8, 1);
+_bagSprite.position.set(-37.5, 6.0, 9.5);
+new THREE.TextureLoader().load('sprites/bag.webp', tex => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const _m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.81 });
+  _applyWes(_m); _bagSprite.material = _m;
+
+  const img = tex.image;
+  const cv = document.createElement('canvas');
+  cv.width = img.width; cv.height = img.height;
+  const cx = cv.getContext('2d');
+  cx.drawImage(img, 0, 0);
+  const imgData = cx.getImageData(0, 0, img.width, img.height);
+  window._bagAlphaAt = (u, v) => {
+    const x = Math.min(img.width  - 1, Math.max(0, Math.floor(u * img.width)));
+    const y = Math.min(img.height - 1, Math.max(0, Math.floor((1 - v) * img.height)));
+    return imgData.data[(y * img.width + x) * 4 + 3];
+  };
+});
+scene.add(_bagSprite);
+window._bagSprite = _bagSprite;
+
+// ── Chair (PNG sprite) ───────────────────────────────────────
+const _chairSprite = new THREE.Sprite();
+_chairSprite.scale.set(10, 10, 1);
+_chairSprite.position.set(-26.0, 5.5, -3.0);
+new THREE.TextureLoader().load('sprites/chair.webp', tex => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const _m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false });
+  _applyWes(_m); _chairSprite.material = _m;
+
+  // Alpha map for pixel-perfect hit testing
+  const img = tex.image;
+  const cv = document.createElement('canvas');
+  cv.width = img.width; cv.height = img.height;
+  const cx = cv.getContext('2d');
+  cx.drawImage(img, 0, 0);
+  const imgData = cx.getImageData(0, 0, img.width, img.height);
+  window._chairAlphaAt = (u, v) => {
+    const x = Math.min(img.width  - 1, Math.max(0, Math.floor(u * img.width)));
+    const y = Math.min(img.height - 1, Math.max(0, Math.floor((1 - v) * img.height)));
+    return imgData.data[(y * img.width + x) * 4 + 3];
+  };
+});
+scene.add(_chairSprite);
+window._chairSprite = _chairSprite;
+
+
+
+
+
+
+
+// ── Grass Many (PNG sprite) ───────────────────────────────────
+const _grassManySprite = new THREE.Sprite();
+_grassManySprite.scale.set(10, 10, 1);
+_grassManySprite.position.set(-34.0, 4.0, 22.5);
+new THREE.TextureLoader().load('sprites/grass-many.webp', tex => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const _m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false });
+  _applyWes(_m); _grassManySprite.material = _m;
+});
+scene.add(_grassManySprite);
+window._grassMany = _grassManySprite;
+
+
+// ── Sign (PNG sprite) ─────────────────────────────────────────
+const _signSprite = new THREE.Sprite();
+_signSprite.scale.set(13.0 * (351/445), 13.0, 1); // preserve natural aspect ratio (351×445)
+_signSprite.position.set(-32.5, 6.1, -20.0);
+window._signSprite = _signSprite;
+new THREE.TextureLoader().load('sprites/sign.webp', tex => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const _m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false });
+  _applyWes(_m); _signSprite.material = _m;
+
+  // Build pixel alpha map for hit-testing (ignores transparent areas)
+  const img = tex.image;
+  const cv = document.createElement('canvas');
+  cv.width = img.width; cv.height = img.height;
+  const cx = cv.getContext('2d');
+  cx.drawImage(img, 0, 0);
+  const imgData = cx.getImageData(0, 0, img.width, img.height);
+  window._signAlphaAt = (u, v) => {
+    const x = Math.min(img.width  - 1, Math.max(0, Math.floor(u * img.width)));
+    const y = Math.min(img.height - 1, Math.max(0, Math.floor((1 - v) * img.height)));
+    return imgData.data[(y * img.width + x) * 4 + 3]; // alpha channel
+  };
+});
+scene.add(_signSprite);
+
+// ── Umbrella (PNG sprite) ─────────────────────────────────────
+const _umbrellaSprite = new THREE.Sprite();
+_umbrellaSprite.scale.set(15, 15, 1);
+_umbrellaSprite.position.set(-25.5, 7.5, -5.5);
+new THREE.TextureLoader().load('sprites/umbrella.webp', tex => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const _m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false });
+  _applyWes(_m); _umbrellaSprite.material = _m;
+});
+scene.add(_umbrellaSprite);
+window._umbrellaSprite = _umbrellaSprite;
+
+
+
+// ── Pampas Grass One — copies (4px apart, staggered wind phase) ──
+(function(){
+  const baseX = -34.0, baseY = 4.0, baseZ = 16.0;
+  const phases = [0.4, 0.9, 1.5, 2.1];
+  const _copies = phases.map((phase, i) => {
+    const spr = new THREE.Sprite();
+    spr.scale.set(5.5, 5.5, 1);
+    spr.position.set(baseX + (i + 1) * 4, baseY, baseZ);
+    spr.renderOrder = -1;
+    new THREE.TextureLoader().load('sprites/grass-single.webp', tex => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const _m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false });
+      _applyWes(_m); spr.material = _m;
+    });
+    scene.add(spr);
+    // bx/by are rest positions the animation uses
+    return { spr, bx: baseX + (i + 1) * 4, by: baseY, bz: baseZ, phase, baseRot: 0 };
+  });
+  window._pampasOneCopies = _copies;
+
+  // Remove Copy 1 from scene
+  scene.remove(_copies[0].spr);
+
+  // ── Copy 2 baked values ──────────────────────────────────────
+  _copies[1].bx = -35.5;
+  _copies[1].by =   5.5;
+  _copies[1].bz =  26.0;
+  _copies[1].spr.position.set(-35.5, 5.5, 26.0);
+  _copies[1].spr.scale.set(3.5, 3.5, 1);
+  _copies[1].baseRot = -0.65; _copies[1].freq = 1.85; _copies[1].freq2 = 2.40;
+  (function waitC2(){
+    if (_copies[1].spr.material) { _copies[1].spr.material.rotation = -0.65; _copies[1].spr.material.opacity = 1.0; }
+    else requestAnimationFrame(waitC2);
+  })();
+
+  // ── Copy 3 baked values ──────────────────────────────────────
+  _copies[2].bx = -34.0;
+  _copies[2].by =   3.5;
+  _copies[2].bz =  19.0;
+  _copies[2].spr.position.set(-34.0, 3.5, 19.0);
+  _copies[2].spr.scale.set(5.5, 5.5, 1);
+  _copies[2].baseRot = 0.41; _copies[2].freq = 2.35; _copies[2].freq2 = 3.20;
+  (function waitC3(){
+    if (_copies[2].spr.material) { _copies[2].spr.material.rotation = 0.41; }
+    else requestAnimationFrame(waitC3);
+  })();
+
+  // ── Copy 4 baked values ──────────────────────────────────────
+  _copies[3].bx = -32.5;
+  _copies[3].by =   4.5;
+  _copies[3].bz =  21.5;
+  _copies[3].spr.position.set(-32.5, 4.5, 21.5);
+  _copies[3].spr.scale.set(5.5, 5.5, 1);
+  _copies[3].baseRot = 0.29; _copies[3].freq = 2.15; _copies[3].freq2 = 3.10;
+  (function waitC4(){
+    if (_copies[3].spr.material) { _copies[3].spr.material.rotation = 0.29; }
+    else requestAnimationFrame(waitC4);
+  })();
+
+  (function swayCopies(){
+    requestAnimationFrame(swayCopies);
+    const t = performance.now() * 0.001;
+    _copies.forEach(c => {
+      if (!c.spr.material) return;
+      const windRot = Math.sin(t * c.freq + c.phase) * 0.075 + Math.sin(t * c.freq2 + c.phase * 1.3) * 0.012;
+      c.spr.material.rotation = c.baseRot + windRot;
+    });
+  })();
+})();
+
+// ── Bag hover label ───────────────────────────────────────────
+const _raycaster = new THREE.Raycaster();
+const _mouse = new THREE.Vector2();
+const _labelEl = document.createElement('div');
+_labelEl.id = 'hoverLabel';
+_labelEl.innerHTML = 'Playground';
+const _signLabelEl = document.createElement('div');
+_signLabelEl.id = 'signHoverLabel';
+_signLabelEl.className = 'hoverLabel';
+_signLabelEl.textContent = 'About me';
+document.body.appendChild(_signLabelEl);
+const _chairLabelEl = document.createElement('div');
+_chairLabelEl.id = 'chairHoverLabel';
+_chairLabelEl.className = 'hoverLabel';
+_chairLabelEl.innerHTML = 'Listening to';
+document.body.appendChild(_chairLabelEl);
+document.body.appendChild(_labelEl);
+
+// Mobile: tapping pills opens modals
+_labelEl.addEventListener('click',     () => { if (innerWidth <= 1080) document.getElementById('projectsModal').style.display = 'flex'; });
+_signLabelEl.addEventListener('click', () => { if (innerWidth <= 1080) document.getElementById('aboutFullModal').style.display = 'flex'; });
+_chairLabelEl.addEventListener('click',() => { if (innerWidth <= 1080) document.getElementById('playerModal').style.display = 'flex'; });
+
+// UV ranges → board label (0=bottom-left, 1=top-right of sprite)
+const _signBoards = [
+  { minX: -0.52, maxX: 1.62, minY: 0.83, maxY: 0.98, text: 'About Me' },
+  { minX: -0.40, maxX: 1.59, minY: 0.69, maxY: 0.81, text: '5+ years experience' },
+  { minX: -0.16, maxX: 1.57, minY: 0.50, maxY: 0.65, text: 'Currently at Workday' },
+  { minX: -0.38, maxX: 1.53, minY: 0.34, maxY: 0.48, text: 'Based in Dublin, Ireland' },
+];
+window._signBoards = _signBoards;
+
+// Bag hover zone (UV space)
+const _bagZone = { minX: 0.0, maxX: 1.0, minY: 0.0, maxY: 1.0 };
+window._bagZone = _bagZone;
+window._camera = camera;
+window._controls = controls;
+
+// _labelOffsets and _dbgPinned initialized in early plain script above module
+
+
+let _chairHovered = false, _chairNoteTimer = null;
+function _spawnNote(sx, sy) {
+  const notes = ['♪','♫','🎵','🎶'];
+  const el = document.createElement('div');
+  el.className = 'music-note';
+  el.textContent = notes[Math.floor(Math.random() * notes.length)];
+  el.style.left = (sx + (Math.random() - 0.5) * 28) + 'px';
+  el.style.top  = sy + 'px';
+  el.style.setProperty('--dx', (Math.random() - 0.5) * 36 + 'px');
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+const _isModalOpen = () => ['aboutModal','aboutFullModal','projectsModal','playerModal'].some(id => document.getElementById(id).style.display === 'flex');
+
+addEventListener('mousemove', e => {
+  if (innerWidth <= 1080) return;
+  if (_isModalOpen()) { document.body.style.cursor = 'default'; return; }
+  _mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  _raycaster.setFromCamera(_mouse, camera);
+
+  // Bag label — full sprite area (no alpha gate)
+  const bagHits = _raycaster.intersectObject(_bagSprite);
+  let bagInZone = bagHits.length > 0;
+  if (bagInZone) {
+    const pos = _bagSprite.position.clone().project(camera);
+    _labelEl.style.left = ((pos.x + 1) / 2 * innerWidth  + window._labelOffsets.bag.x) + 'px';
+    _labelEl.style.top  = ((-pos.y + 1) / 2 * innerHeight + window._labelOffsets.bag.y) + 'px';
+    _labelEl.classList.add('visible');
+    document.body.style.cursor = 'pointer';
+  } else {
+    _labelEl.classList.remove('visible');
+  }
+
+  // Sign board hover — full sprite area (no alpha gate)
+  const signHits = _raycaster.intersectObject(_signSprite);
+  let signHovered = signHits.length > 0;
+  if (signHovered) {
+    const pos = _signSprite.position.clone().project(camera);
+    _signLabelEl.style.left = ((pos.x + 1) / 2 * innerWidth  + window._labelOffsets.sign.x) + 'px';
+    _signLabelEl.style.top  = ((-pos.y + 1) / 2 * innerHeight + window._labelOffsets.sign.y) + 'px';
+    _signLabelEl.classList.add('visible');
+    document.body.style.cursor = 'pointer';
+  } else {
+    _signLabelEl.classList.remove('visible');
+  }
+
+  // Chair music notes — full sprite area (no alpha gate)
+  const chairHits = _raycaster.intersectObject(_chairSprite);
+  let chairInZone = chairHits.length > 0;
+  if (chairInZone) {
+    const pos = _chairSprite.position.clone().project(camera);
+    _chairLabelEl.style.left = ((pos.x + 1) / 2 * innerWidth  + window._labelOffsets.chair.x) + 'px';
+    _chairLabelEl.style.top  = ((-pos.y + 1) / 2 * innerHeight + window._labelOffsets.chair.y) + 'px';
+    _chairLabelEl.classList.add('visible');
+    document.body.style.cursor = 'pointer';
+    if (!_chairHovered) {
+      _chairHovered = true;
+      _spawnNote((pos.x + 1) / 2 * innerWidth, (-pos.y + 1) / 2 * innerHeight);
+      _chairNoteTimer = setInterval(() => {
+        const p2 = _chairSprite.position.clone().project(camera);
+        _spawnNote((p2.x + 1) / 2 * innerWidth, (-p2.y + 1) / 2 * innerHeight);
+      }, 380);
+    }
+  } else if (_chairHovered) {
+    _chairHovered = false;
+    _chairLabelEl.classList.remove('visible');
+    clearInterval(_chairNoteTimer);
+  }
+
+  if (!bagInZone && !signHovered && !chairInZone) document.body.style.cursor = '';
+});
+
+// ── Click handlers — modals ───────────────────────────────────
+addEventListener('click', e => {
+  if (_isModalOpen()) return;
+  _mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  _raycaster.setFromCamera(_mouse, camera);
+
+  // Sign → About Me (full sprite area)
+  const signHits = _raycaster.intersectObject(_signSprite);
+  if (signHits.length > 0) {
+    document.getElementById('aboutFullModal').style.display = 'flex';
+  }
+
+  // Chair → Player modal (full sprite area)
+  const chairHits = _raycaster.intersectObject(_chairSprite);
+  if (chairHits.length > 0) {
+    document.getElementById('playerModal').style.display = 'flex';
+  }
+
+  // Bag → Projects modal (full sprite area)
+  const bagHits = _raycaster.intersectObject(_bagSprite);
+  if (bagHits.length > 0) {
+    document.getElementById('projectsModal').style.display = 'flex';
+  }
+});
+
+// ── Floatie click — impulse kick on desktop ───────────────────
+addEventListener('click', e => {
+  if (innerWidth <= 1080) return;
+  if (_isModalOpen()) return;
+  _mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  _raycaster.setFromCamera(_mouse, camera);
+  const floaties = window._floaties;
+  if (!floaties) return;
+  floaties.forEach(f => {
+    const meshes = [];
+    f.grp.traverse(o => { if (o.isMesh) meshes.push(o); });
+    if (_raycaster.intersectObjects(meshes, false).length === 0) return;
+    // Random kick direction, strong initial speed (like a leg hitting it)
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 5 + Math.random() * 4;
+    f._vx = (f._vx || 0) + Math.cos(angle) * speed;
+    f._vz = (f._vz || 0) + Math.sin(angle) * speed;
+  });
+});
+
+// Tick: velocity + heavy water drag each frame
+window._tickFloatieDrifts = function(dt) {
+  const floaties = window._floaties;
+  if (!floaties) return;
+  // drag: velocity decays to ~4% after 1 second (heavy water resistance)
+  const drag = Math.pow(0.04, dt);
+  floaties.forEach(f => {
+    if (!f._vx && !f._vz) return;
+    f._vx = (f._vx || 0) * drag;
+    f._vz = (f._vz || 0) * drag;
+    f.px += f._vx * dt;
+    f.pz += f._vz * dt;
+    f.grp.position.x = f.px;
+    f.grp.position.z = f.pz;
+    // Clear tiny residual velocity
+    if (Math.abs(f._vx) < 0.001 && Math.abs(f._vz) < 0.001) { f._vx = 0; f._vz = 0; }
+  });
+};
+
+// ── Grass group mover ─────────────────────────────────────────
+// Anchor = _grassManySprite original pos; offsets are relative to it
+const _grassAnchor  = { x: -34.0, y: 4.0, z: 22.5 };
+const _grassOffsets = [
+  { ref: () => _grassManySprite,                   dx:  0,   dy:  0,   dz:  0,   bs: 10  },
+  { ref: () => window._pampasOneCopies?.[1]?.spr,  dx: -1.5, dy:  1.5, dz:  3.5, bs: 3.5 },
+  { ref: () => window._pampasOneCopies?.[2]?.spr,  dx:  0,   dy: -0.5, dz: -3.5, bs: 5.5 },
+  { ref: () => window._pampasOneCopies?.[3]?.spr,  dx:  1.5, dy:  0.5, dz: -1.0, bs: 5.5 },
+];
+function _moveGrassGroup(ax, ay, az, scale = 1) {
+  _grassOffsets.forEach(({ ref, dx, dy, dz, bs }) => {
+    const spr = ref();
+    if (!spr) return;
+    spr.position.set(ax + dx, ay + dy, az + dz);
+    spr.scale.set(bs * scale, bs * scale, 1);
+    const copy = window._pampasOneCopies?.find(c => c.spr === spr);
+    if (copy) { copy.bx = ax + dx; copy.by = ay + dy; copy.bz = az + dz; }
+  });
+}
+window._moveGrassGroup = _moveGrassGroup;
+
+// ── Chair+Umbrella group mover ────────────────────────────────
+// Anchor = chair pos; umbrella offset relative to it
+const _chairOffsets = [
+  { ref: () => _chairSprite,    dx: 0,   dy: 0,   dz:  0,   bs: 10 },
+  { ref: () => _umbrellaSprite, dx: 0.5, dy: 2.0, dz: -2.5, bs: 15 },
+];
+function _moveChairGroup(ax, ay, az, scale = 1) {
+  _chairOffsets.forEach(({ ref, dx, dy, dz, bs }) => {
+    const spr = ref();
+    if (!spr) return;
+    spr.position.set(ax + dx, ay + dy, az + dz);
+    spr.scale.set(bs * scale, bs * scale, 1);
+  });
+}
+window._moveChairGroup = _moveChairGroup;
+
+
+// ── Sprite responsive configs ──────────────────────────────────
+const _spriteConfigs = {
+  desktop: {
+    bag:   { pos: [-37.5,  6.0,   9.5], scale: 8,  aspect: 1       },
+    chair: { pos: [-26.0,  5.5,  -3.0], scale: 1,  aspect: 1       },
+    sign:  { pos: [-32.5,  5.4, -20.0], scale: 13, aspect: 351/445 },
+    grass: { pos: [-34.0,  4.0,  22.5], scale: 1  },
+  },
+  tablet: {
+    bag:   { pos: [-46.0,  6.5,  -6.5], scale: 8.5, aspect: 1       },
+    chair: { pos: [-28.0,  7.0,   8.0], scale: 1.1, aspect: 1       },
+    sign:  { pos: [-19.5,  7.7, -17.0], scale: 18,  aspect: 351/445 },
+    grass: { pos: [-44.5,  5.6,   8.0], scale: 1   },
+  },
+  mobile: {
+    bag:   { pos: [-68.0,  6.9,  -5.5], scale: 13,  aspect: 1       },
+    chair: { pos: [-47.5,  8.8,  15.0], scale: 1.5,  aspect: 1       },
+    sign:  { pos: [-41.5, 12.1, -13.5], scale: 24,   aspect: 351/445 },
+    grass: { pos: [-72.5,  7.5,   8.5], scale: 1.4 },
+  },
+};
+window._spriteConfigs = _spriteConfigs;
+
+function _applySprites(mode) {
+  const cfg = _spriteConfigs[mode];
+  const map = { bag: _bagSprite, chair: _chairSprite, sign: _signSprite };
+  for (const [name, c] of Object.entries(cfg)) {
+    if (name === 'grass') { _moveGrassGroup(...c.pos, c.scale ?? 1); continue; }
+    if (name === 'chair') { _moveChairGroup(...c.pos, c.scale ?? 1); continue; }
+    const spr = map[name];
+    if (!spr) continue;
+    spr.position.set(...c.pos);
+    spr.scale.set(c.scale * c.aspect, c.scale, 1);
+  }
+  if (typeof _syncDbgSliders === 'function') _syncDbgSliders(mode);
+}
+
+// ── Resize ────────────────────────────────────────────────────
+let _lastMode = null;
+function _applyResponsiveCamera() {
+  const w = innerWidth, h = innerHeight;
+  const aspect = w / h;
+  const mobile = w <= 768;
+  const tablet = !mobile && w <= 1080;
+  const mode = mobile ? 'mobile' : tablet ? 'tablet' : 'desktop';
+  camera.fov    = mobile ? Math.min(2 * Math.atan(Math.tan(52 * Math.PI / 360) * (16 / 9) / aspect) * (180 / Math.PI), 90) : 52;
+  controls.minDistance = mobile ? 105 : 79;
+  controls.maxDistance = mobile ? 118 : 86;
+  controls.enableZoom   = !mobile && !tablet;
+  controls.enableRotate = !mobile && !tablet;
+  controls.enablePan    = !mobile && !tablet;
+  camera.aspect = aspect;
+  camera.updateProjectionMatrix();
+  controls.update();
+  renderer.setSize(w, h);
+  if (mode !== _lastMode) { _lastMode = mode; _applySprites(mode); _applyFloaties(mode); _applyPampas(mode); }
+}
+
+const _pampasConfigs = {
+  desktop: [
+    { ci: 1, x: -35.5, y: 5.5, z: 26.0, sc: 3.5 },
+    { ci: 2, x: -34.0, y: 3.5, z: 19.0, sc: 5.5 },
+    { ci: 3, x: -32.5, y: 4.5, z: 21.5, sc: 5.5 },
+  ],
+  tablet: [
+    { ci: 1, x: -45.1, y: 5.5, z: 11.6, sc: 3.5 },
+    { ci: 2, x: -43.0, y: 3.5, z:  4.7, sc: 5.5 },
+    { ci: 3, x: -40.3, y: 4.5, z:  6.9, sc: 5.5 },
+  ],
+  mobile: [
+    { ci: 1, x: -73.7, y: 9.0, z: 13.9, sc: 4.9 },
+    { ci: 2, x: -73.0, y: 7.0, z:  4.1, sc: 7.7 },
+    { ci: 3, x: -71.0, y: 8.0, z:  6.5, sc: 7.7 },
+  ],
+};
+function _applyPampas(mode) {
+  const cfgs = _pampasConfigs[mode];
+  const copies = window._pampasOneCopies;
+  if (!cfgs || !copies) return;
+  cfgs.forEach(({ ci, x, y, z, sc }) => {
+    const c = copies[ci];
+    if (!c) return;
+    c.bx = x; c.by = y; c.bz = z;
+    c.spr.position.set(x, y, z);
+    c.spr.scale.set(sc, sc, 1);
+  });
+}
+
+const _floatieConfigs = window._floatieConfigs = {
+  desktop: [
+    { x: 15.4, y: 0.35, z:   5.0, rotY: 0.30 },
+    { x: 23.0, y: 0.20, z:  -6.2, rotY: 1.10 },
+    { x: 15.6, y: 0.50, z: -19.4, rotY: 0.80 },
+  ],
+  tablet: [
+    { x: 15.4, y: 0.35, z:  22.2, rotY:  0.30 },
+    { x: 23.0, y: 0.20, z:  -2.4, rotY:  1.10 },
+    { x: 15.6, y: 0.50, z: -13.2, rotY: -1.11 },
+  ],
+  mobile: [
+    { x: 15.4, y: 0.35, z:  20.1, rotY: 0.3 },
+    { x: 23.0, y: 0.20, z:  10.4, rotY: 1.1 },
+    { x: 15.6, y: 0.50, z:  -0.1, rotY: 0.8 },
+  ],
+};
+
+function _applyFloaties(mode) {
+  const cfgs = _floatieConfigs[mode];
+  if (!cfgs || !window._floaties) return;
+  cfgs.forEach((c, i) => {
+    const f = window._floaties[i];
+    if (!f) return;
+    f.grp.position.set(c.x, c.y, c.z);
+    f.grp.rotation.y = c.rotY;
+    f.baseY = c.y; f.px = c.x; f.pz = c.z;
+  });
+}
+_applyResponsiveCamera();
+addEventListener('resize', _applyResponsiveCamera);
+
+// ── Floaties ──────────────────────────────────────────────────
+const _floaties = [];
+(function(){
+
+  function mkTex(fn) {
+    const c = document.createElement('canvas');
+    fn(c);
+    return new THREE.CanvasTexture(c);
+  }
+
+  function ring(outerR, tubeR, tex, x, z, rotY, baseY = 0.35) {
+    const geo = new THREE.TorusGeometry(outerR, tubeR, 20, 80);
+    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.12, metalness: 0.0 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = -Math.PI / 2;
+    const grp = new THREE.Group();
+    grp.add(mesh);
+    grp.position.set(x, baseY, z);
+    grp.rotation.y = rotY;
+    scene.add(grp);
+    _floaties.push({ grp, baseY, px: x, pz: z });
+  }
+  window._floaties = _floaties;
+
+  // Watermelon green ring
+  ring(2.4, 0.92, mkTex(c => {
+    c.width = 256; c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#3fc44a'; ctx.fillRect(0,0,256,64);
+    ctx.fillStyle = '#197826';
+    [0.08, 0.28, 0.49, 0.70, 0.90].forEach(p => ctx.fillRect(p*256, 0, 14, 64));
+    ctx.fillStyle = 'rgba(255,255,255,0.20)';
+    ctx.fillRect(0, 0, 256, 10);
+  }), 15.4, 5.0, 0.30, 0.35);
+
+  // Blue/white stripe ring
+  ring(2.7, 0.98, mkTex(c => {
+    c.width = 320; c.height = 64;
+    const ctx = c.getContext('2d');
+    const n = 10, w = c.width / n;
+    for (let i = 0; i < n; i++) {
+      ctx.fillStyle = i % 2 === 0 ? '#1a55d4' : '#eef6ff';
+      ctx.fillRect(i * w, 0, w, 64);
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(0, 0, c.width, 9);
+  }), 23.0, -6.2, 1.10, 0.20);
+
+  // Hot pink ring
+  ring(2.1, 0.80, mkTex(c => {
+    c.width = 128; c.height = 32;
+    const ctx = c.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, 128, 0);
+    g.addColorStop(0,   '#f0348a');
+    g.addColorStop(0.5, '#ff6ab0');
+    g.addColorStop(1,   '#f0348a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 32);
+    ctx.fillStyle = 'rgba(255,255,255,0.22)';
+    ctx.fillRect(0, 0, 128, 7);
+  }), 15.6, -19.4, 0.80, 0.50);
+
+  // Apply correct positions based on current breakpoint
+  const _initMode = innerWidth <= 768 ? 'mobile' : innerWidth <= 1080 ? 'tablet' : 'desktop';
+  _applyFloaties(_initMode);
+  _applyPampas(_initMode);
+})();
+
+
+// ── Animate ───────────────────────────────────────────────────
+let t=0, _lastTs=0;
+(function animate(ts){
+  requestAnimationFrame(animate);
+  const dt = Math.min((ts - _lastTs) / 1000, 0.05); _lastTs = ts;
+  t+=0.016;
+  waterUniforms.uTime.value=t;
+  sandMat.uniforms.uTime.value=t;
+  if (window._tickFloatieDrifts) window._tickFloatieDrifts(dt);
+  // Bob floaties with waves
+  _floaties.forEach((f, i) => {
+    const bob = Math.sin(t * 0.85 + i * 1.57 + f.px * 0.07) * 0.18
+              + Math.cos(t * 0.52 + f.pz * 0.09) * 0.10;
+    f.grp.position.y = f.baseY + bob;
+    const tiltX = (f._vz || 0) * 0.05;
+    const tiltZ = -(f._vx || 0) * 0.05;
+    f.grp.rotation.x = Math.sin(t * 0.40 + i * 1.20) * 0.04 + tiltX;
+    f.grp.rotation.z = Math.cos(t * 0.35 + i * 0.80) * 0.04 + tiltZ;
+  });
+  controls.update();
+
+  // On mobile, keep labels pinned over sprites permanently
+  if (innerWidth <= 1080) {
+    const _projectLabel = (spr, el, offKey) => {
+      const p = spr.position.clone().project(camera);
+      const offsets = innerWidth <= 768
+        ? (window._mobileLabelOffsets || window._labelOffsets)
+        : (window._tabletLabelOffsets || window._labelOffsets);
+      const ox = offsets[offKey].x, oy = offsets[offKey].y;
+      el.style.left = ((p.x + 1) / 2 * innerWidth  + ox) + 'px';
+      el.style.top  = ((-p.y + 1) / 2 * innerHeight + oy) + 'px';
+      el.classList.add('visible');
+    };
+    if (_bagSprite)   _projectLabel(_bagSprite,   _labelEl,      'bag');
+    if (_signSprite)  _projectLabel(_signSprite,  _signLabelEl,  'sign');
+    if (_chairSprite) _projectLabel(_chairSprite, _chairLabelEl, 'chair');
+  }
+
+  renderer.render(scene,camera);
+
+})();
+</script>
+
+
+
+
+<style>
+/* ── About Me Modal ─────────────────────────────────────────── */
+
+#aboutModal {
+  display: none;
+  position: fixed; inset: 0; z-index: 2000;
+  align-items: center; justify-content: center;
+  background: #0c0e12;
+  overflow: hidden;
+  animation: modalBackdropIn 0.35s ease both;
+}
+
+
+#aboutCard {
+  position: relative; z-index: 1;
+  width: 380px; max-width: 88vw;
+  padding: 48px;
+  font-family: 'Inter', sans-serif;
+  animation: modalCardIn 0.45s 0.05s cubic-bezier(.22,1,.36,1) both;
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 20px;
+}
+#aboutClose {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(255,255,255,0.12); border: none; font-size: 16px;
+  color: rgba(255,255,255,0.8); cursor: pointer; line-height: 1;
+  width: 34px; height: 34px; padding: 0;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s; z-index: 2;
+}
+#aboutClose:hover { background: rgba(255,255,255,0.22); color: #fff; }
+.ab-avatar-wrap {
+  width: 80px; height: 80px; border-radius: 50%;
+  overflow: hidden; margin-bottom: 24px;
+  flex-shrink: 0;
+}
+.ab-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ab-name {
+  font-size: 32px; font-weight: 700; color: #fff;
+  margin: 0 0 10px; letter-spacing: -0.8px;
+}
+.ab-bio {
+  font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.65;
+  margin: 0 0 28px; letter-spacing: -0.2px;
+}
+.ab-divider { border: none; border-top: 1px solid rgba(255,255,255,0.10); margin: 0 0 24px; }
+.ab-companies { display: flex; flex-direction: column; gap: 14px; }
+.ab-row {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 15px; color: rgba(255,255,255,1); letter-spacing: -0.3px;
+  text-decoration: none; cursor: pointer;
+}
+.ab-logo-wrap {
+  width: 28px; height: 28px; border-radius: 7px;
+  overflow: hidden; flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+}
+.ab-logo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ab-row-text { font-size: 15px; color: rgba(255,255,255,1); letter-spacing: -0.3px; }
+.ab-link {
+  color: inherit;
+  text-decoration: none;
+  text-underline-offset: 5px;
+}
+.ab-row:hover .ab-link {
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.20);
+}
+@media (max-width: 1080px) {
+  .ab-link {
+    text-decoration: underline;
+    text-decoration-color: rgba(255,255,255,0.20);
+  }
+}
+</style>
+
+<div id="aboutModal">
+  <canvas id="aboutGLCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+  <div id="aboutOverlay" style="position:absolute;inset:0;background:#000;opacity:0.26;pointer-events:none;"></div>
+
+  <div id="aboutCard">
+    <button id="aboutClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
+
+    <div class="ab-avatar-wrap">
+      <img src="about/sumit-photo.png" alt="Sumit Narang" onerror="this.style.display='none'">
+    </div>
+
+    <h2 class="ab-name">Sumit Narang</h2>
+    <p class="ab-bio">I'm a product designer based in<br>Dublin, Ireland</p>
+
+    <hr class="ab-divider">
+
+    <div class="ab-companies">
+      <a class="ab-row" href="https://www.workday.com" target="_blank" rel="noopener">
+        <div class="ab-logo-wrap">
+          <img src="about/workday.svg" alt="Workday">
+        </div>
+        <span class="ab-row-text">Currently at <span class="ab-link">Workday</span></span>
+      </a>
+      <a class="ab-row" href="https://www.personio.com" target="_blank" rel="noopener">
+        <div class="ab-logo-wrap">
+          <img src="about/personio.svg" alt="Personio">
+        </div>
+        <span class="ab-row-text">Previously at <span class="ab-link">Personio</span></span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el || el.classList.contains('modal-closing')) return;
+  el.classList.add('modal-closing');
+  el.addEventListener('animationend', () => {
+    el.style.display = 'none';
+    el.classList.remove('modal-closing');
+  }, { once: true });
+}
+document.getElementById('aboutClose').addEventListener('click', () => closeModal('aboutModal'));
+document.getElementById('aboutModal').addEventListener('click', e => {
+  if (!document.getElementById('aboutCard').contains(e.target)) closeModal('aboutModal');
+});
+
+// ── About Me — WebGL fluid shader ───────────────────────────
+(function(){
+  const cv = document.getElementById('aboutGLCanvas');
+  const gl = cv.getContext('webgl') || cv.getContext('experimental-webgl');
+  if (!gl) return;
+
+  const vert = `attribute vec2 aPos; void main(){ gl_Position=vec4(aPos,0.,1.); }`;
+  const frag = `
+    precision mediump float;
+    uniform float uTime;
+    uniform vec2  uRes;
+
+    vec3 colA = vec3(1.000, 0.576, 0.165); // #FF932A
+    vec3 colB = vec3(0.322, 0.612, 0.953); // #529CF3
+
+    float swirl(vec2 p, float t){
+      vec2 q = vec2(
+        sin(p.x*1.9 + t*0.7 + sin(p.y*1.3 + t*0.45)*2.0),
+        sin(p.y*2.1 - t*0.55 + sin(p.x*1.6 - t*0.35)*1.7)
+      );
+      return sin(q.x + q.y)*0.5 + 0.5;
+    }
+
+    void main(){
+      vec2 uv = (gl_FragCoord.xy / uRes)*2.0 - 1.0;
+      uv.x *= uRes.x / uRes.y;
+      float t = uTime;
+      float f  = swirl(uv, t);
+      float f2 = swirl(uv*0.65 + vec2(1.1,0.75), t*0.8 + 2.1);
+      float blend = mix(f, f2, 0.45);
+      vec3 col = mix(colA, colB, smoothstep(0.35, 0.65, blend));
+      // glow where colors meet
+      float glow = 1.0 - abs(blend - 0.5)*2.0;
+      col = mix(col, vec3(1.0), pow(glow, 3.0)*0.38);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  function mkShader(type, src){
+    const s = gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vert));
+  gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, frag));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog,'aPos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  const uTime = gl.getUniformLocation(prog,'uTime');
+  const uRes  = gl.getUniformLocation(prog,'uRes');
+
+  let _speed = 0.10, _t = 0, _last = null, _raf = null;
+
+  function resize(){
+    cv.width  = cv.offsetWidth  * devicePixelRatio;
+    cv.height = cv.offsetHeight * devicePixelRatio;
+    gl.viewport(0,0,cv.width,cv.height);
+  }
+
+  function loop(ts){
+    if(_last !== null) _t += (ts - _last)/1000 * _speed;
+    _last = ts;
+    resize();
+    gl.uniform1f(uTime, _t);
+    gl.uniform2f(uRes, cv.width, cv.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    _raf = requestAnimationFrame(loop);
+  }
+
+  // Start/stop with modal visibility
+  const modal = document.getElementById('aboutModal');
+  const obs = new MutationObserver(() => {
+    if(modal.style.display === 'flex'){
+      if(!_raf){ _last=null; _raf=requestAnimationFrame(loop); }
+    } else {
+      if(_raf){ cancelAnimationFrame(_raf); _raf=null; }
+    }
+  });
+  obs.observe(modal, {attributes:true, attributeFilter:['style']});
+
+})();
+</script>
+
+
+<style>
+/* ── Projects Modal ──────────────────────────────────────────── */
+#projectsModal {
+  display: none;
+  position: fixed; inset: 0; z-index: 2000;
+  align-items: center; justify-content: center;
+  background: #0c0e12;
+  overflow: hidden;
+  animation: modalBackdropIn 0.35s ease both;
+}
+#projectsCard {
+  position: relative; z-index: 1;
+  width: 380px; max-width: 88vw;
+  font-family: 'Inter', sans-serif;
+  animation: modalCardIn 0.45s 0.05s cubic-bezier(.22,1,.36,1) both;
+}
+#projectsCard .ab-name,
+#projectsCard .ab-bio {
+  text-align: center;
+}
+#projectsClose {
+  position: absolute; top: 24px; right: 24px;
+  background: rgba(255,255,255,0.12); border: none;
+  color: rgba(255,255,255,0.8); cursor: pointer; line-height: 1;
+  width: 34px; height: 34px; padding: 0;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s; z-index: 2;
+}
+#projectsClose:hover { background: rgba(255,255,255,0.22); color: #fff; }
+.pr-title {
+  font-size: 28px; font-weight: 700; color: #fff;
+  margin: 0 0 20px; letter-spacing: -0.5px;
+}
+.pr-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.pr-row {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 16px; color: rgba(255,255,255,0.8); letter-spacing: -0.5px;
+}
+.pr-logo-wrap {
+  width: 28px; height: 28px; border-radius: 7px;
+  overflow: hidden; flex-shrink: 0;
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+}
+.pr-logo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pr-divider { border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 0 0 24px; }
+.pr-companies { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.pr-view-all {
+  width: 100%; padding: 16px;
+  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px; font-size: 16px; font-weight: 500;
+  color: #fff; cursor: pointer; letter-spacing: -0.3px;
+  transition: background 0.15s;
+}
+.pr-view-all:hover { background: rgba(255,255,255,0.18); }
+
+#musicCard .ab-name {
+  font-size: 20px; letter-spacing: -0.5px;
+}
+.pr-item {
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 -12px;
+  text-decoration: none; color: inherit;
+  padding: 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.10);
+  transition: background 0.2s ease;
+}
+.pr-item:hover {
+  background: rgba(255,255,255,0.15);
+}
+.pr-item-icon {
+  width: 80px; height: 80px; border-radius: 8px;
+  object-fit: cover; flex-shrink: 0;
+}
+.pr-item-body { flex: 1; min-width: 0; }
+.pr-item-header {
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.pr-item-name {
+  font-size: 18px; font-weight: 600; color: #fff;
+  letter-spacing: -0.3px; margin: 0; flex: 1;
+  text-box-trim: both;
+  text-box-edge: cap alphabetic;
+}
+.pr-ext-box {
+  width: 24px; height: 24px; flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.pr-item:hover .pr-ext-box {
+  transform: translateX(4px);
+}
+.pr-item-desc {
+  font-size: 15px; font-weight: 400; color: rgba(255,255,255,0.70);
+  letter-spacing: -0.3px; margin: 8px 0 0;
+}
+</style>
+
+<div id="projectsModal">
+  <canvas id="projectsGLCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+  <div id="projectsOverlay" style="position:absolute;inset:0;background:#000;opacity:0.26;pointer-events:none;"></div>
+  <button id="projectsClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
+
+  <div id="projectsCard">
+    <h2 class="ab-name">Playground</h2>
+    <p class="ab-bio">Some fun ideas I am working on</p>
+    <hr class="ab-divider">
+
+    <a class="pr-item" href="https://sumitnarang.com/roundabout" target="_blank" rel="noopener">
+      <img class="pr-item-icon" src="playground/roundabout.png" alt="Roundabout">
+      <div class="pr-item-body">
+        <div class="pr-item-header">
+          <h3 class="pr-item-name">Roundabout</h3>
+          <img src="playground/external-link.svg" alt="External link" class="pr-ext-box">
+        </div>
+        <p class="pr-item-desc">Master the madness of Ireland's roundabouts and prove your driving skill</p>
+      </div>
+    </a>
+
+  </div><!-- /#projectsCard -->
+</div>
+
+<script>
+document.getElementById('projectsClose').addEventListener('click', () => closeModal('projectsModal'));
+document.addEventListener('keydown', e => {
+  if (document.getElementById('projectsModal').style.display === 'flex' && e.code === 'Escape') closeModal('projectsModal');
+});
+
+
+// ── Projects Modal — WebGL fluid shader ─────────────────────
+(function(){
+  const cv = document.getElementById('projectsGLCanvas');
+  const gl = cv.getContext('webgl') || cv.getContext('experimental-webgl');
+  if (!gl) return;
+
+  const vert = `attribute vec2 aPos; void main(){ gl_Position=vec4(aPos,0.,1.); }`;
+  const frag = `
+    precision mediump float;
+    uniform float uTime;
+    uniform vec2  uRes;
+    vec3 colA = vec3(1.000, 0.576, 0.165);
+    vec3 colB = vec3(0.322, 0.612, 0.953);
+    float swirl(vec2 p, float t){
+      vec2 q = vec2(
+        sin(p.x*1.9 + t*0.7 + sin(p.y*1.3 + t*0.45)*2.0),
+        sin(p.y*2.1 - t*0.55 + sin(p.x*1.6 - t*0.35)*1.7)
+      );
+      return sin(q.x + q.y)*0.5 + 0.5;
+    }
+    void main(){
+      vec2 uv = (gl_FragCoord.xy / uRes)*2.0 - 1.0;
+      uv.x *= uRes.x / uRes.y;
+      float f  = swirl(uv, uTime);
+      float f2 = swirl(uv*0.65 + vec2(1.1,0.75), uTime*0.8 + 2.1);
+      float blend = mix(f, f2, 0.45);
+      vec3 col = mix(colA, colB, smoothstep(0.35, 0.65, blend));
+      float glow = 1.0 - abs(blend - 0.5)*2.0;
+      col = mix(col, vec3(1.0), pow(glow, 3.0)*0.38);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  function mkShader(type, src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vert));
+  gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, frag));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog,'aPos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  const uTime = gl.getUniformLocation(prog,'uTime');
+  const uRes  = gl.getUniformLocation(prog,'uRes');
+
+  let _speed = 0.10, _t = 0, _last = null, _raf = null;
+
+  function resize(){ cv.width=cv.offsetWidth*devicePixelRatio; cv.height=cv.offsetHeight*devicePixelRatio; gl.viewport(0,0,cv.width,cv.height); }
+
+  function loop(ts){
+    if(_last!==null) _t += (ts-_last)/1000*_speed;
+    _last = ts;
+    resize();
+    gl.uniform1f(uTime, _t);
+    gl.uniform2f(uRes, cv.width, cv.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    _raf = requestAnimationFrame(loop);
+  }
+
+  const modal = document.getElementById('projectsModal');
+  new MutationObserver(() => {
+    if(modal.style.display==='flex'){ if(!_raf){ _last=null; _raf=requestAnimationFrame(loop); } }
+    else { if(_raf){ cancelAnimationFrame(_raf); _raf=null; } }
+  }).observe(modal, {attributes:true, attributeFilter:['style']});
+
+})();
+</script>
+
+
+<!-- ── Full-screen Player Modal ──────────────────────────────── -->
+<style>
+#playerModal {
+  display: none;
+  position: fixed; inset: 0; z-index: 2000;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  background: #0c0e12;
+  overflow: hidden;
+  animation: modalBackdropIn 0.35s ease both;
+}
+#playerBg {
+  position: absolute; inset: -10%;
+  background: url('music/music-cover.webp') center / cover no-repeat;
+  filter: blur(80px) brightness(0.45) saturate(1.4);
+}
+#playerClose {
+  position: absolute; top: 24px; right: 24px;
+  background: rgba(255,255,255,0.12); border: none;
+  color: rgba(255,255,255,0.8); cursor: pointer;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s; z-index: 2;
+}
+#playerClose:hover { background: rgba(255,255,255,0.22); color: #fff; }
+#playerContent {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+}
+#playerCover {
+  width: 220px; height: 220px;
+  border-radius: 12px; object-fit: cover;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+  margin-bottom: 28px;
+  animation: modalCardIn 0.45s 0.05s cubic-bezier(.22,1,.36,1) both;
+}
+#playerTitle {
+  font-size: 32px; font-weight: 700; color: #fff;
+  letter-spacing: -0.8px; margin: 0 0 6px;
+}
+#playerArtist {
+  font-size: 16px; color: rgba(255,255,255,0.55);
+  letter-spacing: -0.2px; margin: 0;
+}
+#playerBar {
+  position: relative; z-index: 1;
+  width: min(640px, 88vw);
+  margin-top: 40px;
+  display: flex; align-items: center; gap: 16px;
+}
+#playerPlayBtn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,0.20); border: none;
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+#playerPlayBtn:hover { background: rgba(255,255,255,0.32); }
+#playerWaveform { flex: 1; height: 52px; cursor: pointer; display: block; }
+#playerBar.bar-in { animation: modalCardIn 0.45s cubic-bezier(.22,1,.36,1) both; }
+#playerTime {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; color: rgba(255,255,255,1);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em; white-space: nowrap;
+  width: min(640px, 88vw);
+  text-align: right;
+  margin-top: 10px;
+  position: relative; z-index: 1;
+}
+@media (max-width: 768px) {
+  #playerCover {
+    width: min(180px, 52vw); height: min(180px, 52vw);
+    margin-bottom: 20px;
+  }
+  #playerTitle { font-size: 24px; letter-spacing: -0.5px; }
+  #playerArtist { font-size: 14px; }
+  #playerBar { margin-top: 28px; gap: 12px; }
+  #playerWaveform { height: 44px; }
+}
+#aboutFullModal {
+  display: none; position: fixed; inset: 0; z-index: 2000;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: #0c0e12;
+  overflow: hidden;
+  animation: modalBackdropIn 0.35s ease both;
+}
+#aboutFullContent { padding: 24px; }
+#aboutFullBg {
+  position: absolute; inset: -10%;
+  background: url('about/sumit-photo.png') center / cover no-repeat;
+  filter: blur(80px) brightness(0.65) saturate(1.6);
+}
+#aboutFullClose {
+  position: absolute; top: 24px; right: 24px;
+  background: rgba(255,255,255,0.12); border: none;
+  color: rgba(255,255,255,0.8); cursor: pointer;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s; z-index: 2;
+}
+#aboutFullClose:hover { background: rgba(255,255,255,0.22); color: #fff; }
+#aboutFullContent {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; font-family: 'Inter', sans-serif;
+}
+#aboutFullPhoto {
+  width: 160px; height: 160px; border-radius: 50%; object-fit: cover;
+  margin-bottom: 20px;
+  animation: modalCardIn 0.45s 0.05s cubic-bezier(.22,1,.36,1) both;
+}
+#aboutFullName {
+  font-size: 28px; font-weight: 700; color: #fff;
+  letter-spacing: -0.8px; margin: 0 0 6px;
+}
+#aboutFullBody {
+  display: flex; flex-direction: column; align-items: flex-start;
+  width: fit-content; max-width: 80vw;
+}
+#aboutFullRole {
+  font-size: 15px; color: rgba(255,255,255,0.55);
+  letter-spacing: -0.2px; margin: 0;
+  width: 100%; text-align: center;
+}
+.af-divider {
+  width: 100%; border: none;
+  border-top: 1px solid rgba(255,255,255,0.15); margin: 20px 0 20px;
+}
+.af-companies > :first-child { padding-top: 0; }
+.af-companies { width: 100%; display: flex; flex-direction: column; gap: 0; }
+.af-row {
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none; color: inherit;
+  padding: 10px 0;
+}
+.af-logo {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.10); object-fit: contain;
+}
+.af-row-text { font-size: 15px; color: rgba(255,255,255,0.70); letter-spacing: -0.3px; }
+.af-link { color: rgba(255,255,255,0.90); font-weight: 500; text-underline-offset: 3px; }
+.af-row:hover .af-link { text-decoration: underline; text-decoration-color: rgba(255,255,255,0.35); }
+</style>
+
+<div id="aboutFullModal">
+  <div id="aboutFullBg"></div>
+  <button id="aboutFullClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
+
+  <div id="aboutFullContent">
+    <img id="aboutFullPhoto" src="about/sumit-photo.png" alt="Sumit Narang">
+    <h2 id="aboutFullName">Sumit Narang</h2>
+    <div id="aboutFullBody">
+    <p id="aboutFullRole">I'm a product designer based in<br>Dublin, Ireland</p>
+
+    <hr class="af-divider">
+
+    <div class="af-companies">
+      <a class="af-row" href="https://www.workday.com" target="_blank" rel="noopener">
+        <img class="af-logo" src="about/workday.svg" alt="Workday">
+        <span class="af-row-text">Currently at <span class="af-link">Workday</span></span>
+      </a>
+      <a class="af-row" href="https://www.personio.com" target="_blank" rel="noopener">
+        <img class="af-logo" src="about/personio.svg" alt="Personio">
+        <span class="af-row-text">Previously at <span class="af-link">Personio</span></span>
+      </a>
+    </div>
+    </div><!-- /aboutFullBody -->
+  </div>
+</div>
+
+<div id="playerModal">
+  <div id="playerBg"></div>
+  <button id="playerClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
+
+  <div id="playerContent">
+    <img id="playerCover" src="music/music-cover.webp" alt="Temper City">
+    <h2 id="playerTitle">Temper City</h2>
+    <p id="playerArtist">Self Aware</p>
+  </div>
+
+  <div id="playerBar">
+    <button id="playerPlayBtn"><img src="music/play.svg" alt="Play" style="width:32px;height:32px;display:block;"></button>
+    <canvas id="playerWaveform"></canvas>
+  </div>
+  <span id="playerTime">00:00 · 00:00</span>
+
+</div>
+
+<script>
+(function(){
+  const modal   = document.getElementById('playerModal');
+  const closeBtn= document.getElementById('playerClose');
+  const playBtn = document.getElementById('playerPlayBtn');
+  const cvs     = document.getElementById('playerWaveform');
+  const timeEl  = document.getElementById('playerTime');
+
+  let _audio = null, _rafId = null;
+  let _hoverFrac = -1;
+  const _waveformData = new Float32Array([0.786,0.482,0.694,0.755,0.436,0.921,0.663,0.906,0.839,0.725,0.913,0.688,0.882,0.841,0.662,0.898,0.704,0.891,0.846,0.695,0.883,0.774,0.872,0.838,0.660,0.855,0.873,0.868,0.922,0.712,0.806,0.891,0.827,0.942,0.745,0.820,0.894,0.838,0.966,0.679,0.836,0.893,0.822,0.952,0.791,0.857,0.850,0.827,0.967,0.765,0.819,0.877,0.796,0.949,0.807,0.820,0.888,0.764,0.972,0.745,0.828,0.878,0.768,0.991,0.836,0.824,0.895,0.749,0.993,0.878,0.838,0.912,0.753,0.918,0.878,0.779,0.959,0.703,0.945,0.892,0.798,0.902,0.588,0.919,0.859,0.670,0.967,0.814,0.992,0.945,0.850,0.977,0.764,1.000,0.917,0.821,0.991,0.830,1.000,0.926,0.841,1.000,0.787,0.980,0.929,0.849,0.987,0.839,0.972,0.899,0.819,0.985,0.836,0.946,0.916,0.845,0.935,0.889,0.953,0.954,0.853,0.963,0.881,0.951,0.967,0.808,0.902,0.853,0.882,0.916,0.769,0.853,0.846,0.844,0.961,0.754,0.870,0.861,0.807,0.976,0.743,0.878,0.840,0.738,0.920,0.658,0.848,0.912,0.848,0.990,0.831,0.875,0.910,0.824,0.986,0.779,0.844,0.899,0.765,0.959,0.831,0.892,0.844,0.643,1.000,0.748,0.752,0.913,0.847,1.000,0.950,0.877,0.951,0.805,0.971,0.959,0.882,0.967,0.853,1.000,0.951,0.885,0.988,0.811,0.976,0.968,0.844,1.000,0.799,1.000,0.916,0.793,1.000,0.817,0.971,0.952,0.830,1.000,0.847,0.996,0.938,0.863,1.000,0.845,0.969,0.931,0.833,0.708,0.499,0.463,0.488,0.465,0.513,0.526,0.520,0.500,0.521,0.519,0.517,0.517,0.517,0.512,0.548,0.478,0.497,0.486,0.463,0.681,0.783,0.799,0.826,0.700,0.651,0.799,0.711,0.800,0.666,0.749,0.812,0.750,0.784,0.689,0.731,0.758,0.696,0.813,0.708,0.858,0.748,0.665,0.876,0.697,0.793,0.910,0.892,1.000,0.899,0.919,0.924,0.847,1.000,0.909,0.953,0.941,0.871,1.000,0.919,0.934,0.926,0.821,1.000,0.964,0.883,0.976,0.828,0.999,0.918,0.861,0.972,0.825,0.967,0.946,0.806,1.000,0.818,0.996,0.962,0.849,1.000,0.823,0.995,0.933,0.866,0.900,0.470,0.846,0.762,0.409,0.161,0.069]);
+  const dpr = Math.min(devicePixelRatio, 2);
+  const playerBar = document.getElementById('playerBar');
+
+  function _startIntroAnim() {
+    playerBar.classList.remove('bar-in');
+    void playerBar.offsetWidth; // force reflow to restart animation
+    playerBar.classList.add('bar-in');
+    if (!_rafId) drawBars();
+  }
+
+  function getAudio() {
+    if (!_audio) {
+      _audio = new Audio('music/TemperCity-SelfAware.mp3?v=3');
+      _audio.preload = 'metadata';
+      _audio.addEventListener('loadedmetadata', () => {
+        timeEl.innerHTML = `<span style="color:rgba(255,255,255,0.50)">${fmt(0)} / </span><span style="color:rgba(255,255,255,0.70);font-weight:600">${fmt(_audio.duration)}</span>`;
+      });
+      _audio.addEventListener('ended', () => {
+        playBtn.innerHTML = '<img src="music/play.svg" alt="Play" style="width:32px;height:32px;display:block;">'; playBtn.classList.remove('playing'); stopViz();
+      });
+    }
+    return _audio;
+  }
+
+  function fmt(s) {
+    if (!s || isNaN(s)) return '00:00';
+    return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  }
+
+  function drawBars() {
+    const W = cvs.offsetWidth, H = cvs.offsetHeight;
+    if (!W || !H) return;
+    cvs.width = W * dpr; cvs.height = H * dpr;
+    const c = cvs.getContext('2d');
+    c.scale(dpr, dpr);
+    c.clearRect(0, 0, W, H);
+
+    const barW = 1, stride = 3;
+    const count = Math.floor(W / stride);
+    const aud = _audio;
+    const progress = (aud && aud.duration) ? aud.currentTime / aud.duration : 0;
+    const hovering = _hoverFrac >= 0;
+
+    for (let i = 0; i < count; i++) {
+      const frac = i / count, x = i * stride;
+      const amp = _waveformData[Math.floor(frac * _waveformData.length)];
+      const h = Math.max(amp * H * 0.92, 2);
+      let opacity;
+      if (progress > 0 && frac <= progress)     opacity = 0.88;
+      else if (hovering && frac <= _hoverFrac) opacity = 0.55;
+      else                                     opacity = hovering ? 0.15 : 0.30;
+      c.fillStyle = `rgba(255,255,255,${opacity})`;
+      c.fillRect(x, H / 2 - h / 2, barW, h);
+    }
+  }
+
+  function tick() {
+    drawBars();
+    if (_audio) timeEl.innerHTML = `<span style="color:rgba(255,255,255,0.50)">${fmt(_audio.currentTime)} / </span><span style="color:rgba(255,255,255,0.70);font-weight:600">${fmt(_audio.duration)}</span>`;
+    _rafId = requestAnimationFrame(tick);
+  }
+  function startViz() { if (!_rafId) _rafId = requestAnimationFrame(tick); }
+  function stopViz()  { if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; } drawBars(); }
+
+  playBtn.addEventListener('click', async () => {
+    const aud = getAudio();
+    if (aud.paused) {
+      await aud.play();
+      playBtn.innerHTML = '<img src="music/pause.svg" alt="Pause" style="width:32px;height:32px;display:block;">'; playBtn.classList.add('playing');
+      startViz();
+    } else {
+      aud.pause();
+      playBtn.innerHTML = '<img src="music/play.svg" alt="Play" style="width:32px;height:32px;display:block;">'; playBtn.classList.remove('playing');
+      stopViz();
+    }
+  });
+
+  cvs.addEventListener('mousemove', e => {
+    const rect = cvs.getBoundingClientRect();
+    _hoverFrac = (e.clientX - rect.left) / rect.width;
+    if (!_rafId) drawBars();
+  });
+
+  cvs.addEventListener('mouseleave', () => {
+    _hoverFrac = -1;
+    if (!_rafId) drawBars();
+  });
+
+  cvs.addEventListener('click', async e => {
+    const rect = cvs.getBoundingClientRect();
+    const frac = (e.clientX - rect.left) / rect.width;
+    const aud = getAudio();
+    if (aud.paused) {
+      await aud.play();
+      playBtn.innerHTML = '<img src="music/pause.svg" alt="Pause" style="width:32px;height:32px;display:block;">'; playBtn.classList.add('playing');
+      startViz();
+    }
+    if (aud.duration && !isNaN(aud.duration)) aud.currentTime = frac * aud.duration;
+  });
+
+  function closePlayer() {
+    modal.classList.add('modal-closing');
+    modal.addEventListener('animationend', () => {
+      modal.style.display = 'none';
+      modal.classList.remove('modal-closing');
+    }, { once: true });
+    if (_audio) { _audio.pause(); }
+    playBtn.innerHTML = '<img src="music/play.svg" alt="Play" style="width:32px;height:32px;display:block;">'; playBtn.classList.remove('playing');
+    stopViz();
+  }
+
+  closeBtn.addEventListener('click', closePlayer);
+  modal.addEventListener('click', e => { if (e.target === modal) closePlayer(); });
+  window.addEventListener('resize', () => { if (!_rafId) drawBars(); });
+  document.addEventListener('keydown', e => {
+    if (modal.style.display !== 'flex') return;
+    if (e.code === 'Space') { e.preventDefault(); playBtn.click(); }
+    if (e.code === 'Escape') closePlayer();
+  });
+
+  new MutationObserver(() => {
+    if (modal.style.display === 'flex') {
+      getAudio();
+      _startIntroAnim();
+    }
+  }).observe(modal, { attributes: true, attributeFilter: ['style'] });
+})();
+
+// ── About Full Modal ─────────────────────────────────────────
+(function() {
+  const modal = document.getElementById('aboutFullModal');
+  function closeAboutFull() {
+    if (modal.classList.contains('modal-closing')) return;
+    modal.classList.add('modal-closing');
+    modal.addEventListener('animationend', () => {
+      modal.style.display = 'none';
+      modal.classList.remove('modal-closing');
+    }, { once: true });
+  }
+  document.getElementById('aboutFullClose').addEventListener('click', closeAboutFull);
+  modal.addEventListener('click', e => { if (e.target === modal) closeAboutFull(); });
+  document.addEventListener('keydown', e => {
+    if (modal.style.display === 'flex' && e.code === 'Escape') closeAboutFull();
+  });
+})();
+</script>
+
+<button id="wavesMuteBtn" title="Toggle ocean sound">
+  <img class="wmb-on" src="icons/sound-on.svg" width="18" height="18" style="display:none">
+  <img class="wmb-off" src="icons/sound-off.svg" width="18" height="18">
+</button>
+
+<script>
+(function(){
+  const btn    = document.getElementById('wavesMuteBtn');
+  const iconOn = btn.querySelector('.wmb-on');
+  const iconOff= btn.querySelector('.wmb-off');
+  let _ctx = null, _master = null, _muted = false, _started = false;
+  const TARGET_VOL = 1.0;
+
+  // ── Preference (cross-page) ───────────────────────────
+  const _pref   = localStorage.getItem('soundPref');
+  const _wantOn = _pref !== 'off';
+
+  function _showIcon(on) {
+    iconOn.style.display  = on ? 'block' : 'none';
+    iconOff.style.display = on ? 'none'  : 'block';
+  }
+  _showIcon(_pref === 'on');
+
+  // ── Noise ─────────────────────────────────────────────
+  function makeNoise(secs) {
+    const len = _ctx.sampleRate * secs | 0;
+    const buf = _ctx.createBuffer(2, len, _ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+      for (let i = 0; i < len; i++) {
+        const w = Math.random() * 2 - 1;
+        b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+        b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+        b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+        d[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.25;
+        b6 = w * 0.115926;
+      }
+    }
+    return buf;
+  }
+
+  const LAYERS = [{ hp: 280, lp: 850, gain: 0.55 }];
+
+  function makeLayer(cfg) {
+    const src = _ctx.createBufferSource();
+    src.buffer = makeNoise(20); src.loop = true;
+    src.loopStart = 0; src.loopEnd = 20;
+    const hiF = _ctx.createBiquadFilter();
+    hiF.type = 'highpass'; hiF.frequency.value = cfg.hp; hiF.Q.value = 0.5;
+    const loF = _ctx.createBiquadFilter();
+    loF.type = 'lowpass'; loF.frequency.value = cfg.lp; loF.Q.value = 0.5;
+    const gn = _ctx.createGain(); gn.gain.value = cfg.gain;
+    src.connect(hiF); hiF.connect(loF); loF.connect(gn); gn.connect(_master);
+    src.start(0);
+  }
+
+  function startOcean() {
+    if (_started) return;
+    _started = true;
+    _ctx = new (window.AudioContext || window.webkitAudioContext)();
+    _master = _ctx.createGain();
+    _master.gain.value = 0;
+    _master.connect(_ctx.destination);
+    _ctx.resume().then(() => {
+      if (!_muted) {
+        _master.gain.setValueAtTime(0, _ctx.currentTime);
+        _master.gain.linearRampToValueAtTime(TARGET_VOL, _ctx.currentTime + 5);
+      }
+      LAYERS.forEach(cfg => makeLayer(cfg));
+    });
+    _showIcon(!_muted);
+    if (!_muted) localStorage.setItem('soundPref', 'on');
+  }
+
+  function setMute(m, savePref) {
+    _muted = m;
+    if (_ctx && _master) {
+      const ct = _ctx.currentTime;
+      _master.gain.cancelScheduledValues(ct);
+      _master.gain.setValueAtTime(_master.gain.value, ct);
+      _master.gain.linearRampToValueAtTime(m ? 0 : TARGET_VOL, ct + 0.05);
+    }
+    _showIcon(!m);
+    if (savePref !== false) localStorage.setItem('soundPref', m ? 'off' : 'on');
+  }
+
+  // ── Modal muting ──────────────────────────────────────
+  let _modalDepth = 0, _preMuteState = false;
+  function _onModalOpen() {
+    if (_modalDepth === 0) {
+      _preMuteState = _muted;
+      if (_started && !_muted) setMute(true, false);
+      btn.style.display = 'none';
+    }
+    _modalDepth++;
+  }
+  function _onModalClose() {
+    _modalDepth = Math.max(0, _modalDepth - 1);
+    if (_modalDepth === 0) {
+      if (_started && !_preMuteState) setMute(false, false);
+      btn.style.display = 'flex';
+    }
+  }
+  ['aboutModal','aboutFullModal','projectsModal','playerModal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let wasOpen = false;
+    new MutationObserver(() => {
+      const open = el.style.display === 'flex';
+      if (open && !wasOpen) _onModalOpen();
+      if (!open && wasOpen) _onModalClose();
+      wasOpen = open;
+    }).observe(el, { attributes: true, attributeFilter: ['style'] });
+  });
+
+  // ── Button ────────────────────────────────────────────
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (!_started) {
+      _muted = false;
+      document.removeEventListener('pointerdown', _autoStart);
+      startOcean();
+      localStorage.setItem('soundPref', 'on');
+    } else {
+      setMute(!_muted);
+    }
+  });
+
+  // ── Auto-start on first interaction if pref is on ─────
+  function _autoStart(e) {
+    if (e.target.closest('#wavesMuteBtn')) return;
+    document.removeEventListener('pointerdown', _autoStart);
+    startOcean();
+  }
+  if (_wantOn) document.addEventListener('pointerdown', _autoStart);
+})();
+</script>
+
+
+</body>
+</html>
