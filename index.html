@@ -1848,7 +1848,7 @@ document.addEventListener('keydown', e => {
   const btn    = document.getElementById('wavesMuteBtn');
   const iconOn = btn.querySelector('.wmb-on');
   const iconOff= btn.querySelector('.wmb-off');
-  let _ctx = null, _master = null, _muted = false, _started = false;
+  let _ctx = null, _master = null, _muted = false, _started = false, _layersReady = false;
   const TARGET_VOL = 1.0;
 
   // ── Preference (cross-page) ───────────────────────────
@@ -1859,7 +1859,7 @@ document.addEventListener('keydown', e => {
     iconOn.style.display  = on ? 'block' : 'none';
     iconOff.style.display = on ? 'none'  : 'block';
   }
-  _showIcon(_pref === 'on');
+  _showIcon(_wantOn);
 
   // ── Noise ─────────────────────────────────────────────
   function makeNoise(secs) {
@@ -1895,6 +1895,16 @@ document.addEventListener('keydown', e => {
     src.start(0);
   }
 
+  function _kickLayers() {
+    if (_layersReady || !_ctx) return;
+    _layersReady = true;
+    if (!_muted) {
+      _master.gain.setValueAtTime(0, _ctx.currentTime);
+      _master.gain.linearRampToValueAtTime(TARGET_VOL, _ctx.currentTime + 5);
+    }
+    LAYERS.forEach(cfg => makeLayer(cfg));
+  }
+
   function startOcean() {
     if (_started) return;
     _started = true;
@@ -1902,13 +1912,7 @@ document.addEventListener('keydown', e => {
     _master = _ctx.createGain();
     _master.gain.value = 0;
     _master.connect(_ctx.destination);
-    _ctx.resume().then(() => {
-      if (!_muted) {
-        _master.gain.setValueAtTime(0, _ctx.currentTime);
-        _master.gain.linearRampToValueAtTime(TARGET_VOL, _ctx.currentTime + 5);
-      }
-      LAYERS.forEach(cfg => makeLayer(cfg));
-    });
+    _ctx.resume().then(_kickLayers);
     _showIcon(!_muted);
     if (!_muted) localStorage.setItem('soundPref', 'on');
   }
@@ -1963,17 +1967,22 @@ document.addEventListener('keydown', e => {
       startOcean();
       localStorage.setItem('soundPref', 'on');
     } else {
+      if (!_layersReady) _ctx.resume().then(_kickLayers);
       setMute(!_muted);
     }
   });
 
-  // ── Auto-start on first interaction if pref is on ─────
+  // ── Auto-start: try immediately, fall back to first interaction ───
   function _autoStart(e) {
     if (e.target.closest('#wavesMuteBtn')) return;
     document.removeEventListener('pointerdown', _autoStart);
-    startOcean();
+    if (!_started) startOcean();
+    else _ctx.resume().then(_kickLayers);
   }
-  if (_wantOn) document.addEventListener('pointerdown', _autoStart);
+  if (_wantOn) {
+    startOcean(); // try now — succeeds if browser permits autoplay
+    document.addEventListener('pointerdown', _autoStart); // fallback for suspended context
+  }
 })();
 </script>
 
