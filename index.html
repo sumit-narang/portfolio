@@ -94,7 +94,7 @@ canvas { display:block; }
 
 
 <script>
-window._labelOffsets        = { bag: { x: 18, y: 16  }, sign: { x: 3, y: -22 }, chair: { x:  0, y:  -8 } };
+window._labelOffsets        = { bag: { x: 18, y: 16  }, sign: { x: 2, y: 78 }, chair: { x:  0, y:  -8 } };
 window._mobileLabelOffsets  = { bag: { x: -4, y: 100 }, sign: { x: 5, y:  89 }, chair: { x:  0, y:  84 } };
 window._tabletLabelOffsets  = { bag: { x: -4, y:  33 }, sign: { x: 0, y: 158 }, chair: { x:  0, y: 108 } };
 </script>
@@ -517,10 +517,12 @@ window._grassMany = _grassManySprite;
 // ── Sign (PNG sprite) ─────────────────────────────────────────
 const _signSprite = new THREE.Sprite();
 _signSprite.scale.set(13.0 * (351/445), 13.0, 1); // preserve natural aspect ratio (351×445)
-_signSprite.position.set(-32.5, 6.1, -20.0);
+_signSprite.position.set(-32.5, 6.2, -20.0);
 window._signSprite = _signSprite;
-new THREE.TextureLoader().load('sprites/sign.webp', tex => {
+new THREE.TextureLoader().load('sprites/sign.png', tex => {
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
   const _m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false });
   _applyWes(_m); _signSprite.material = _m;
 
@@ -844,7 +846,7 @@ const _spriteConfigs = {
   desktop: {
     bag:   { pos: [-37.5,  6.0,   9.5], scale: 8,  aspect: 1       },
     chair: { pos: [-26.0,  5.5,  -3.0], scale: 1,  aspect: 1       },
-    sign:  { pos: [-32.5,  5.4, -20.0], scale: 13, aspect: 351/445 },
+    sign:  { pos: [-32.5,  6.2, -20.0], scale: 13, aspect: 351/445 },
     grass: { pos: [-34.0,  4.0,  22.5], scale: 1  },
   },
   tablet: {
@@ -1069,6 +1071,8 @@ let t=0, _lastTs=0;
 
 })();
 </script>
+
+
 
 
 
@@ -1852,15 +1856,11 @@ document.addEventListener('keydown', e => {
   let _ctx = null, _master = null, _muted = false, _started = false, _layersReady = false;
   const TARGET_VOL = 1.0;
 
-  // ── Preference (cross-page) ───────────────────────────
-  const _pref   = localStorage.getItem('soundPref');
-  const _wantOn = _pref !== 'off';
-
   function _showIcon(on) {
     iconOn.style.display  = on ? 'block' : 'none';
     iconOff.style.display = on ? 'none'  : 'block';
   }
-  _showIcon(_wantOn);
+  _showIcon(false);
 
   // ── Noise ─────────────────────────────────────────────
   function makeNoise(secs) {
@@ -1915,10 +1915,9 @@ document.addEventListener('keydown', e => {
     _master.connect(_ctx.destination);
     _ctx.resume().then(_kickLayers);
     _showIcon(!_muted);
-    if (!_muted) localStorage.setItem('soundPref', 'on');
   }
 
-  function setMute(m, savePref) {
+  function setMute(m) {
     _muted = m;
     if (_ctx && _master) {
       const ct = _ctx.currentTime;
@@ -1927,7 +1926,6 @@ document.addEventListener('keydown', e => {
       _master.gain.linearRampToValueAtTime(m ? 0 : TARGET_VOL, ct + 0.05);
     }
     _showIcon(!m);
-    if (savePref !== false) localStorage.setItem('soundPref', m ? 'off' : 'on');
   }
 
   // ── Modal muting ──────────────────────────────────────
@@ -1935,7 +1933,7 @@ document.addEventListener('keydown', e => {
   function _onModalOpen() {
     if (_modalDepth === 0) {
       _preMuteState = _muted;
-      if (_started && !_muted) setMute(true, false);
+      if (_started && !_muted) setMute(true);
       btn.style.display = 'none';
     }
     _modalDepth++;
@@ -1943,7 +1941,7 @@ document.addEventListener('keydown', e => {
   function _onModalClose() {
     _modalDepth = Math.max(0, _modalDepth - 1);
     if (_modalDepth === 0) {
-      if (_started && !_preMuteState) setMute(false, false);
+      if (_started && !_preMuteState) setMute(false);
       btn.style.display = 'flex';
     }
   }
@@ -1964,26 +1962,12 @@ document.addEventListener('keydown', e => {
     e.stopPropagation();
     if (!_started) {
       _muted = false;
-      document.removeEventListener('pointerdown', _autoStart);
       startOcean();
-      localStorage.setItem('soundPref', 'on');
     } else {
       if (!_layersReady) _ctx.resume().then(_kickLayers);
       setMute(!_muted);
     }
   });
-
-  // ── Auto-start: try immediately, fall back to first interaction ───
-  function _autoStart(e) {
-    if (e.target.closest('#wavesMuteBtn')) return;
-    document.removeEventListener('pointerdown', _autoStart);
-    if (!_started) startOcean();
-    else _ctx.resume().then(_kickLayers);
-  }
-  if (_wantOn) {
-    startOcean(); // try now — succeeds if browser permits autoplay
-    document.addEventListener('pointerdown', _autoStart); // fallback for suspended context
-  }
 })();
 </script>
 
