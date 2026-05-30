@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="preload" as="image" href="sprites/sign.webp">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sumit Narang, Product Designer</title>
 <meta name="description" content="Product designer based in Dublin, Ireland">
@@ -519,7 +520,7 @@ const _signSprite = new THREE.Sprite();
 _signSprite.scale.set(13.0 * (351/445), 13.0, 1); // preserve natural aspect ratio (351×445)
 _signSprite.position.set(-32.5, 6.2, -20.0);
 window._signSprite = _signSprite;
-new THREE.TextureLoader().load('sprites/sign.png', tex => {
+new THREE.TextureLoader().load('sprites/sign.webp', tex => {
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.generateMipmaps = false;
   tex.minFilter = THREE.LinearFilter;
