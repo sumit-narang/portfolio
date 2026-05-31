@@ -95,9 +95,9 @@ canvas { display:block; }
 
 
 <script>
-window._labelOffsets        = { bag: { x: 18, y: 16  }, sign: { x: 2, y: 78 }, chair: { x:  0, y:  -8 } };
-window._mobileLabelOffsets  = { bag: { x: -4, y: 100 }, sign: { x: 5, y:  89 }, chair: { x:  0, y:  84 } };
-window._tabletLabelOffsets  = { bag: { x: -4, y:  33 }, sign: { x: 0, y: 158 }, chair: { x:  0, y: 108 } };
+window._labelOffsets        = { bag: { x: 18, y: 16  }, sign: { x: 2, y: 78 }, chair: { x:  0, y:  -8 }, grass: { x: 1, y: 54 } };
+window._mobileLabelOffsets  = { bag: { x: -4, y: 100 }, sign: { x: 5, y:  89 }, chair: { x:  0, y:  84 }, grass: { x: 0, y:  57 } };
+window._tabletLabelOffsets  = { bag: { x: -4, y:  33 }, sign: { x: 0, y: 158 }, chair: { x:  0, y: 108 }, grass: { x: 0, y:  66 } };
 </script>
 
 <script type="importmap">
@@ -642,12 +642,19 @@ _chairLabelEl.id = 'chairHoverLabel';
 _chairLabelEl.className = 'hoverLabel';
 _chairLabelEl.innerHTML = 'Listening to';
 document.body.appendChild(_chairLabelEl);
+const _grassLabelEl = document.createElement('div');
+_grassLabelEl.id = 'grassHoverLabel';
+_grassLabelEl.className = 'hoverLabel';
+_grassLabelEl.textContent = 'Get in touch';
+document.body.appendChild(_grassLabelEl);
+window._grassLabelEl = _grassLabelEl;
 document.body.appendChild(_labelEl);
 
 // Mobile: tapping pills opens modals
 _labelEl.addEventListener('click',     () => { if (innerWidth <= 1080) document.getElementById('projectsModal').style.display = 'flex'; });
 _signLabelEl.addEventListener('click', () => { if (innerWidth <= 1080) document.getElementById('aboutFullModal').style.display = 'flex'; });
 _chairLabelEl.addEventListener('click',() => { if (innerWidth <= 1080) document.getElementById('playerModal').style.display = 'flex'; });
+_grassLabelEl.addEventListener('click',() => { if (innerWidth <= 1080) document.getElementById('contactModal').style.display = 'flex'; });
 
 // UV ranges → board label (0=bottom-left, 1=top-right of sprite)
 const _signBoards = [
@@ -680,7 +687,7 @@ function _spawnNote(sx, sy) {
   el.addEventListener('animationend', () => el.remove());
 }
 
-const _isModalOpen = () => ['aboutModal','aboutFullModal','projectsModal','playerModal'].some(id => document.getElementById(id).style.display === 'flex');
+const _isModalOpen = () => ['aboutModal','aboutFullModal','projectsModal','playerModal','contactModal'].some(id => document.getElementById(id).style.display === 'flex');
 
 addEventListener('mousemove', e => {
   if (innerWidth <= 1080) return;
@@ -737,7 +744,20 @@ addEventListener('mousemove', e => {
     clearInterval(_chairNoteTimer);
   }
 
-  if (!bagInZone && !signHovered && !chairInZone) document.body.style.cursor = '';
+  // Grass hover label
+  const grassHits = _raycaster.intersectObject(_grassManySprite);
+  let grassHovered = grassHits.length > 0;
+  if (grassHovered) {
+    const pos = _grassManySprite.position.clone().project(camera);
+    _grassLabelEl.style.left = ((pos.x + 1) / 2 * innerWidth  + window._labelOffsets.grass.x) + 'px';
+    _grassLabelEl.style.top  = ((-pos.y + 1) / 2 * innerHeight + window._labelOffsets.grass.y) + 'px';
+    _grassLabelEl.classList.add('visible');
+    document.body.style.cursor = 'pointer';
+  } else {
+    _grassLabelEl.classList.remove('visible');
+  }
+
+  if (!bagInZone && !signHovered && !chairInZone && !grassHovered) document.body.style.cursor = '';
 });
 
 // ── Click handlers — modals ───────────────────────────────────
@@ -762,6 +782,12 @@ addEventListener('click', e => {
   const bagHits = _raycaster.intersectObject(_bagSprite);
   if (bagHits.length > 0) {
     document.getElementById('projectsModal').style.display = 'flex';
+  }
+
+  // Grass → Contact modal
+  const grassClickHits = _raycaster.intersectObject(_grassManySprite);
+  if (grassClickHits.length > 0) {
+    document.getElementById('contactModal').style.display = 'flex';
   }
 });
 
@@ -1063,9 +1089,10 @@ let t=0, _lastTs=0;
       el.style.top  = ((-p.y + 1) / 2 * innerHeight + oy) + 'px';
       el.classList.add('visible');
     };
-    if (_bagSprite)   _projectLabel(_bagSprite,   _labelEl,      'bag');
-    if (_signSprite)  _projectLabel(_signSprite,  _signLabelEl,  'sign');
-    if (_chairSprite) _projectLabel(_chairSprite, _chairLabelEl, 'chair');
+    if (_bagSprite)      _projectLabel(_bagSprite,      _labelEl,      'bag');
+    if (_signSprite)     _projectLabel(_signSprite,     _signLabelEl,  'sign');
+    if (_chairSprite)    _projectLabel(_chairSprite,    _chairLabelEl, 'chair');
+    if (_grassManySprite) _projectLabel(_grassManySprite, window._grassLabelEl, 'grass');
   }
 
   renderer.render(scene,camera);
@@ -1416,11 +1443,56 @@ document.getElementById('aboutModal').addEventListener('click', e => {
   </div><!-- /#projectsCard -->
 </div>
 
+<style>
+#contactModal {
+  display: none;
+  position: fixed; inset: 0; z-index: 2000;
+  align-items: center; justify-content: center;
+  background: #0c0e12;
+  overflow: hidden;
+  animation: modalBackdropIn 0.35s ease both;
+}
+#contactCard {
+  position: relative; z-index: 1;
+  width: 380px; max-width: 88vw;
+  font-family: 'Inter', sans-serif;
+  animation: modalCardIn 0.45s 0.05s cubic-bezier(.22,1,.36,1) both;
+}
+#contactCard .ab-name,
+#contactCard .ab-bio {
+  text-align: center;
+}
+#contactClose {
+  position: absolute; top: 24px; right: 24px;
+  background: rgba(255,255,255,0.12); border: none;
+  color: rgba(255,255,255,0.8); cursor: pointer; line-height: 1;
+  width: 34px; height: 34px; padding: 0;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s; z-index: 2;
+}
+#contactClose:hover { background: rgba(255,255,255,0.22); color: #fff; }
+</style>
+
+<div id="contactModal">
+  <canvas id="contactGLCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+  <div id="contactOverlay" style="position:absolute;inset:0;background:#000;opacity:0.26;pointer-events:none;"></div>
+  <button id="contactClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
+
+  <div id="contactCard">
+    <h2 class="ab-name">Get in touch</h2>
+    <p class="ab-bio"></p>
+    <hr class="ab-divider">
+    <!-- content coming soon -->
+  </div><!-- /#contactCard -->
+</div>
+
 <script>
 document.getElementById('projectsClose').addEventListener('click', () => closeModal('projectsModal'));
 document.addEventListener('keydown', e => {
   if (document.getElementById('projectsModal').style.display === 'flex' && e.code === 'Escape') closeModal('projectsModal');
+  if (document.getElementById('contactModal').style.display === 'flex' && e.code === 'Escape') closeModal('contactModal');
 });
+document.getElementById('contactClose').addEventListener('click', () => closeModal('contactModal'));
 
 
 // ── Projects Modal — WebGL fluid shader ─────────────────────
@@ -1487,6 +1559,77 @@ document.addEventListener('keydown', e => {
   }
 
   const modal = document.getElementById('projectsModal');
+  new MutationObserver(() => {
+    if(modal.style.display==='flex'){ if(!_raf){ _last=null; _raf=requestAnimationFrame(loop); } }
+    else { if(_raf){ cancelAnimationFrame(_raf); _raf=null; } }
+  }).observe(modal, {attributes:true, attributeFilter:['style']});
+
+})();
+
+// ── Contact Modal — WebGL fluid shader ──────────────────────
+(function(){
+  const cv = document.getElementById('contactGLCanvas');
+  const gl = cv.getContext('webgl') || cv.getContext('experimental-webgl');
+  if (!gl) return;
+
+  const vert = `attribute vec2 aPos; void main(){ gl_Position=vec4(aPos,0.,1.); }`;
+  const frag = `
+    precision mediump float;
+    uniform float uTime;
+    uniform vec2  uRes;
+    vec3 colA = vec3(1.000, 0.576, 0.165);
+    vec3 colB = vec3(0.322, 0.612, 0.953);
+    float swirl(vec2 p, float t){
+      vec2 q = vec2(
+        sin(p.x*1.9 + t*0.7 + sin(p.y*1.3 + t*0.45)*2.0),
+        sin(p.y*2.1 - t*0.55 + sin(p.x*1.6 - t*0.35)*1.7)
+      );
+      return sin(q.x + q.y)*0.5 + 0.5;
+    }
+    void main(){
+      vec2 uv = (gl_FragCoord.xy / uRes)*2.0 - 1.0;
+      uv.x *= uRes.x / uRes.y;
+      float f  = swirl(uv, uTime);
+      float f2 = swirl(uv*0.65 + vec2(1.1,0.75), uTime*0.8 + 2.1);
+      float blend = mix(f, f2, 0.45);
+      vec3 col = mix(colA, colB, smoothstep(0.35, 0.65, blend));
+      float glow = 1.0 - abs(blend - 0.5)*2.0;
+      col = mix(col, vec3(1.0), pow(glow, 3.0)*0.38);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  function mkShader(type, src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vert));
+  gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, frag));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog,'aPos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  const uTime = gl.getUniformLocation(prog,'uTime');
+  const uRes  = gl.getUniformLocation(prog,'uRes');
+
+  let _speed = 0.10, _t = 0, _last = null, _raf = null;
+
+  function resize(){ cv.width=cv.offsetWidth*devicePixelRatio; cv.height=cv.offsetHeight*devicePixelRatio; gl.viewport(0,0,cv.width,cv.height); }
+
+  function loop(ts){
+    if(_last!==null) _t += (ts-_last)/1000*_speed;
+    _last = ts;
+    resize();
+    gl.uniform1f(uTime, _t);
+    gl.uniform2f(uRes, cv.width, cv.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    _raf = requestAnimationFrame(loop);
+  }
+
+  const modal = document.getElementById('contactModal');
   new MutationObserver(() => {
     if(modal.style.display==='flex'){ if(!_raf){ _last=null; _raf=requestAnimationFrame(loop); } }
     else { if(_raf){ cancelAnimationFrame(_raf); _raf=null; } }
@@ -1946,7 +2089,7 @@ document.addEventListener('keydown', e => {
       btn.style.display = 'flex';
     }
   }
-  ['aboutModal','aboutFullModal','projectsModal','playerModal'].forEach(id => {
+  ['aboutModal','aboutFullModal','projectsModal','playerModal','contactModal'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     let wasOpen = false;
