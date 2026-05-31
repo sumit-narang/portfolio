@@ -1149,8 +1149,8 @@ let t=0, _lastTs=0;
   margin: 0 0 10px; letter-spacing: -0.8px;
 }
 .ab-bio {
-  font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.65;
-  margin: 0 0 28px; letter-spacing: -0.2px;
+  font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.65;
+  margin: 0 0 40px; letter-spacing: -0.2px;
 }
 .ab-divider { border: none; border-top: 1px solid rgba(255,255,255,0.10); margin: 0 0 24px; }
 .ab-companies { display: flex; flex-direction: column; gap: 14px; }
@@ -1415,7 +1415,7 @@ document.getElementById('aboutModal').addEventListener('click', e => {
 }
 .pr-item-desc {
   font-size: 15px; font-weight: 400; color: rgba(255,255,255,0.70);
-  letter-spacing: -0.3px; margin: 8px 0 0;
+  letter-spacing: -0.3px; margin: 8px 0 0; line-height: 20px;
 }
 </style>
 
@@ -1426,8 +1426,7 @@ document.getElementById('aboutModal').addEventListener('click', e => {
 
   <div id="projectsCard">
     <h2 class="ab-name">Playground</h2>
-    <p class="ab-bio">A space for experiments, ideas, and things I'm building</p>
-    <hr class="ab-divider">
+    <p class="ab-bio">Experiments, ideas, and things I'm building</p>
 
     <a class="pr-item" href="https://sumitnarang.com/roundabout" target="_blank" rel="noopener">
       <img class="pr-item-icon" src="playground/roundabout.png" alt="Roundabout">
@@ -1471,6 +1470,29 @@ document.getElementById('aboutModal').addEventListener('click', e => {
   transition: background 0.15s, color 0.15s; z-index: 2;
 }
 #contactClose:hover { background: rgba(255,255,255,0.22); color: #fff; }
+.ct-list { display: flex; flex-direction: column; gap: 10px; }
+.ct-item {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: #fff;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.10);
+  transition: background 0.2s ease;
+}
+.ct-item:hover { background: rgba(255,255,255,0.16); }
+.ct-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: flex-start;
+  flex-shrink: 0;
+}
+.ct-name {
+  font-size: 18px; font-weight: 500; letter-spacing: -0.3px; flex: 1;
+}
+.ct-arrow {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.ct-item:hover .ct-arrow { transform: translateX(4px); }
 </style>
 
 <div id="contactModal">
@@ -1479,10 +1501,24 @@ document.getElementById('aboutModal').addEventListener('click', e => {
   <button id="contactClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
 
   <div id="contactCard">
-    <h2 class="ab-name">Get in touch</h2>
-    <p class="ab-bio"></p>
-    <hr class="ab-divider">
-    <!-- content coming soon -->
+    <h2 class="ab-name">Get In Touch</h2>
+    <p class="ab-bio">Say hello, ask a question, or just connect</p>
+    <div class="ct-list">
+
+      <a class="ct-item" href="https://github.com/sumit-narang" target="_blank" rel="noopener">
+        <div class="ct-icon"><img src="get-in-touch/github.svg" width="28" height="28" alt="GitHub"></div>
+        <span class="ct-name">Github</span>
+        <img src="playground/external-link.svg" class="ct-arrow" width="24" height="24" alt="">
+      </a>
+
+      <a class="ct-item" href="https://www.linkedin.com/in/sumitnarang-in/" target="_blank" rel="noopener">
+        <div class="ct-icon"><img src="get-in-touch/linkedIn.svg" width="28" height="28" alt="LinkedIn"></div>
+        <span class="ct-name">LinkedIn</span>
+        <img src="playground/external-link.svg" class="ct-arrow" width="24" height="24" alt="">
+      </a>
+
+
+    </div>
   </div><!-- /#contactCard -->
 </div>
 
