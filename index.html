@@ -1766,12 +1766,12 @@ document.getElementById('contactClose').addEventListener('click', () => closeMod
     const rect = cvs.getBoundingClientRect();
     const frac = (e.clientX - rect.left) / rect.width;
     const aud = getAudio();
+    if (aud.duration && !isNaN(aud.duration)) aud.currentTime = frac * aud.duration;
     if (aud.paused) {
       await aud.play();
       playBtn.innerHTML = '<img src="music/pause.svg" alt="Pause" style="width:32px;height:32px;display:block;">'; playBtn.classList.add('playing');
       startViz();
     }
-    if (aud.duration && !isNaN(aud.duration)) aud.currentTime = frac * aud.duration;
   });
 
   function closePlayer() {
