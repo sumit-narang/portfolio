@@ -923,6 +923,8 @@ function _applyResponsiveCamera() {
   controls.update();
   renderer.setSize(w, h);
   if (mode !== _lastMode) { _lastMode = mode; _applySprites(mode); _applyFloaties(mode); _applyPampas(mode); }
+  const ws = mobile ? 1.5 : 1;
+  waterMesh.scale.set(ws, 1, ws);
 }
 
 const _pampasConfigs = {
@@ -986,6 +988,7 @@ function _applyFloaties(mode) {
 }
 _applyResponsiveCamera();
 addEventListener('resize', _applyResponsiveCamera);
+
 
 // ── Floaties ──────────────────────────────────────────────────
 const _floaties = [];
