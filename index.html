@@ -1185,8 +1185,8 @@ let t=0, _lastTs=0;
 </style>
 
 <div id="aboutModal">
-  <canvas id="aboutGLCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
-  <div id="aboutOverlay" style="position:absolute;inset:0;background:#000;opacity:0.26;pointer-events:none;"></div>
+  <div class="modal-grad-bg"></div>
+  <div class="modal-blob-layer"><div class="mbl mbl-ora"></div><div class="mbl mbl-blu"></div></div>
 
   <div id="aboutCard">
     <button id="aboutClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
@@ -1232,92 +1232,6 @@ document.getElementById('aboutModal').addEventListener('click', e => {
   if (!document.getElementById('aboutCard').contains(e.target)) closeModal('aboutModal');
 });
 
-// ── About Me — WebGL fluid shader ───────────────────────────
-(function(){
-  const cv = document.getElementById('aboutGLCanvas');
-  const gl = cv.getContext('webgl') || cv.getContext('experimental-webgl');
-  if (!gl) return;
-
-  const vert = `attribute vec2 aPos; void main(){ gl_Position=vec4(aPos,0.,1.); }`;
-  const frag = `
-    precision mediump float;
-    uniform float uTime;
-    uniform vec2  uRes;
-
-    vec3 colA = vec3(1.000, 0.576, 0.165); // #FF932A
-    vec3 colB = vec3(0.322, 0.612, 0.953); // #529CF3
-
-    float swirl(vec2 p, float t){
-      vec2 q = vec2(
-        sin(p.x*1.9 + t*0.7 + sin(p.y*1.3 + t*0.45)*2.0),
-        sin(p.y*2.1 - t*0.55 + sin(p.x*1.6 - t*0.35)*1.7)
-      );
-      return sin(q.x + q.y)*0.5 + 0.5;
-    }
-
-    void main(){
-      vec2 uv = (gl_FragCoord.xy / uRes)*2.0 - 1.0;
-      uv.x *= uRes.x / uRes.y;
-      float t = uTime;
-      float f  = swirl(uv, t);
-      float f2 = swirl(uv*0.65 + vec2(1.1,0.75), t*0.8 + 2.1);
-      float blend = mix(f, f2, 0.45);
-      vec3 col = mix(colA, colB, smoothstep(0.35, 0.65, blend));
-      // glow where colors meet
-      float glow = 1.0 - abs(blend - 0.5)*2.0;
-      col = mix(col, vec3(1.0), pow(glow, 3.0)*0.38);
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `;
-
-  function mkShader(type, src){
-    const s = gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s;
-  }
-  const prog = gl.createProgram();
-  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vert));
-  gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, frag));
-  gl.linkProgram(prog); gl.useProgram(prog);
-
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
-  const aPos = gl.getAttribLocation(prog,'aPos');
-  gl.enableVertexAttribArray(aPos);
-  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-  const uTime = gl.getUniformLocation(prog,'uTime');
-  const uRes  = gl.getUniformLocation(prog,'uRes');
-
-  let _speed = 0.10, _t = 0, _last = null, _raf = null;
-
-  function resize(){
-    cv.width  = cv.offsetWidth  * devicePixelRatio;
-    cv.height = cv.offsetHeight * devicePixelRatio;
-    gl.viewport(0,0,cv.width,cv.height);
-  }
-
-  function loop(ts){
-    if(_last !== null) _t += (ts - _last)/1000 * _speed;
-    _last = ts;
-    resize();
-    gl.uniform1f(uTime, _t);
-    gl.uniform2f(uRes, cv.width, cv.height);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    _raf = requestAnimationFrame(loop);
-  }
-
-  // Start/stop with modal visibility
-  const modal = document.getElementById('aboutModal');
-  const obs = new MutationObserver(() => {
-    if(modal.style.display === 'flex'){
-      if(!_raf){ _last=null; _raf=requestAnimationFrame(loop); }
-    } else {
-      if(_raf){ cancelAnimationFrame(_raf); _raf=null; }
-    }
-  });
-  obs.observe(modal, {attributes:true, attributeFilter:['style']});
-
-})();
 </script>
 
 
@@ -1417,11 +1331,37 @@ document.getElementById('aboutModal').addEventListener('click', e => {
   font-size: 15px; font-weight: 400; color: rgba(255,255,255,0.70);
   letter-spacing: -0.3px; margin: 8px 0 0; line-height: 20px;
 }
+.modal-grad-bg { position:absolute; inset:0; background:linear-gradient(135deg,#c05210 0%,#07111e 48%,#07111e 52%,#1654cc 100%); background-size:300% 300%; animation:gradFlow 14s ease infinite; }
+@keyframes gradFlow {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+.modal-blob-layer { position:absolute; inset:0; overflow:hidden; }
+.mbl { position:absolute; border-radius:50%; aspect-ratio:1; filter:blur(90px); opacity:0.65; }
+.mbl-ora { width:58%; background:rgb(255,100,15); top:-10%; left:-10%; animation:mblOra 22s ease-in-out infinite; }
+.mbl-blu { width:58%; background:rgb(30,100,255); bottom:-10%; right:-10%; animation:mblBlu 28s ease-in-out infinite; }
+@keyframes mblOra {
+  0%   { transform: translate(0%,  0%)  scale(1.0); }
+  20%  { transform: translate(12%, 8%)  scale(1.08); }
+  40%  { transform: translate(5%,  18%) scale(0.95); }
+  60%  { transform: translate(16%, 10%) scale(1.05); }
+  80%  { transform: translate(8%,  3%)  scale(1.1); }
+  100% { transform: translate(0%,  0%)  scale(1.0); }
+}
+@keyframes mblBlu {
+  0%   { transform: translate(0%,   0%)  scale(1.0); }
+  25%  { transform: translate(-12%, -8%) scale(1.05); }
+  45%  { transform: translate(-5%, -18%) scale(1.1); }
+  65%  { transform: translate(-16%,-10%) scale(0.95); }
+  85%  { transform: translate(-8%,  -3%) scale(1.08); }
+  100% { transform: translate(0%,   0%)  scale(1.0); }
+}
 </style>
 
 <div id="projectsModal">
-  <canvas id="projectsGLCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
-  <div id="projectsOverlay" style="position:absolute;inset:0;background:#000;opacity:0.26;pointer-events:none;"></div>
+  <div class="modal-grad-bg"></div>
+  <div class="modal-blob-layer"><div class="mbl mbl-ora"></div><div class="mbl mbl-blu"></div></div>
   <button id="projectsClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
 
   <div id="projectsCard">
@@ -1496,8 +1436,8 @@ document.getElementById('aboutModal').addEventListener('click', e => {
 </style>
 
 <div id="contactModal">
-  <canvas id="contactGLCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
-  <div id="contactOverlay" style="position:absolute;inset:0;background:#000;opacity:0.26;pointer-events:none;"></div>
+  <div class="modal-grad-bg"></div>
+  <div class="modal-blob-layer"><div class="mbl mbl-ora"></div><div class="mbl mbl-blu"></div></div>
   <button id="contactClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
 
   <div id="contactCard">
@@ -1531,147 +1471,6 @@ document.addEventListener('keydown', e => {
 document.getElementById('contactClose').addEventListener('click', () => closeModal('contactModal'));
 
 
-// ── Projects Modal — WebGL fluid shader ─────────────────────
-(function(){
-  const cv = document.getElementById('projectsGLCanvas');
-  const gl = cv.getContext('webgl') || cv.getContext('experimental-webgl');
-  if (!gl) return;
-
-  const vert = `attribute vec2 aPos; void main(){ gl_Position=vec4(aPos,0.,1.); }`;
-  const frag = `
-    precision mediump float;
-    uniform float uTime;
-    uniform vec2  uRes;
-    vec3 colA = vec3(1.000, 0.576, 0.165);
-    vec3 colB = vec3(0.322, 0.612, 0.953);
-    float swirl(vec2 p, float t){
-      vec2 q = vec2(
-        sin(p.x*1.9 + t*0.7 + sin(p.y*1.3 + t*0.45)*2.0),
-        sin(p.y*2.1 - t*0.55 + sin(p.x*1.6 - t*0.35)*1.7)
-      );
-      return sin(q.x + q.y)*0.5 + 0.5;
-    }
-    void main(){
-      vec2 uv = (gl_FragCoord.xy / uRes)*2.0 - 1.0;
-      uv.x *= uRes.x / uRes.y;
-      float f  = swirl(uv, uTime);
-      float f2 = swirl(uv*0.65 + vec2(1.1,0.75), uTime*0.8 + 2.1);
-      float blend = mix(f, f2, 0.45);
-      vec3 col = mix(colA, colB, smoothstep(0.35, 0.65, blend));
-      float glow = 1.0 - abs(blend - 0.5)*2.0;
-      col = mix(col, vec3(1.0), pow(glow, 3.0)*0.38);
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `;
-
-  function mkShader(type, src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
-  const prog = gl.createProgram();
-  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vert));
-  gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, frag));
-  gl.linkProgram(prog); gl.useProgram(prog);
-
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
-  const aPos = gl.getAttribLocation(prog,'aPos');
-  gl.enableVertexAttribArray(aPos);
-  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-  const uTime = gl.getUniformLocation(prog,'uTime');
-  const uRes  = gl.getUniformLocation(prog,'uRes');
-
-  let _speed = 0.10, _t = 0, _last = null, _raf = null;
-
-  function resize(){ cv.width=cv.offsetWidth*devicePixelRatio; cv.height=cv.offsetHeight*devicePixelRatio; gl.viewport(0,0,cv.width,cv.height); }
-
-  function loop(ts){
-    if(_last!==null) _t += (ts-_last)/1000*_speed;
-    _last = ts;
-    resize();
-    gl.uniform1f(uTime, _t);
-    gl.uniform2f(uRes, cv.width, cv.height);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    _raf = requestAnimationFrame(loop);
-  }
-
-  const modal = document.getElementById('projectsModal');
-  new MutationObserver(() => {
-    if(modal.style.display==='flex'){ if(!_raf){ _last=null; _raf=requestAnimationFrame(loop); } }
-    else { if(_raf){ cancelAnimationFrame(_raf); _raf=null; } }
-  }).observe(modal, {attributes:true, attributeFilter:['style']});
-
-})();
-
-// ── Contact Modal — WebGL fluid shader ──────────────────────
-(function(){
-  const cv = document.getElementById('contactGLCanvas');
-  const gl = cv.getContext('webgl') || cv.getContext('experimental-webgl');
-  if (!gl) return;
-
-  const vert = `attribute vec2 aPos; void main(){ gl_Position=vec4(aPos,0.,1.); }`;
-  const frag = `
-    precision mediump float;
-    uniform float uTime;
-    uniform vec2  uRes;
-    vec3 colA = vec3(1.000, 0.576, 0.165);
-    vec3 colB = vec3(0.322, 0.612, 0.953);
-    float swirl(vec2 p, float t){
-      vec2 q = vec2(
-        sin(p.x*1.9 + t*0.7 + sin(p.y*1.3 + t*0.45)*2.0),
-        sin(p.y*2.1 - t*0.55 + sin(p.x*1.6 - t*0.35)*1.7)
-      );
-      return sin(q.x + q.y)*0.5 + 0.5;
-    }
-    void main(){
-      vec2 uv = (gl_FragCoord.xy / uRes)*2.0 - 1.0;
-      uv.x *= uRes.x / uRes.y;
-      float f  = swirl(uv, uTime);
-      float f2 = swirl(uv*0.65 + vec2(1.1,0.75), uTime*0.8 + 2.1);
-      float blend = mix(f, f2, 0.45);
-      vec3 col = mix(colA, colB, smoothstep(0.35, 0.65, blend));
-      float glow = 1.0 - abs(blend - 0.5)*2.0;
-      col = mix(col, vec3(1.0), pow(glow, 3.0)*0.38);
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `;
-
-  function mkShader(type, src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
-  const prog = gl.createProgram();
-  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vert));
-  gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, frag));
-  gl.linkProgram(prog); gl.useProgram(prog);
-
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
-  const aPos = gl.getAttribLocation(prog,'aPos');
-  gl.enableVertexAttribArray(aPos);
-  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-  const uTime = gl.getUniformLocation(prog,'uTime');
-  const uRes  = gl.getUniformLocation(prog,'uRes');
-
-  let _speed = 0.10, _t = 0, _last = null, _raf = null;
-
-  function resize(){ cv.width=cv.offsetWidth*devicePixelRatio; cv.height=cv.offsetHeight*devicePixelRatio; gl.viewport(0,0,cv.width,cv.height); }
-
-  function loop(ts){
-    if(_last!==null) _t += (ts-_last)/1000*_speed;
-    _last = ts;
-    resize();
-    gl.uniform1f(uTime, _t);
-    gl.uniform2f(uRes, cv.width, cv.height);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    _raf = requestAnimationFrame(loop);
-  }
-
-  const modal = document.getElementById('contactModal');
-  new MutationObserver(() => {
-    if(modal.style.display==='flex'){ if(!_raf){ _last=null; _raf=requestAnimationFrame(loop); } }
-    else { if(_raf){ cancelAnimationFrame(_raf); _raf=null; } }
-  }).observe(modal, {attributes:true, attributeFilter:['style']});
-
-})();
 </script>
 
 
@@ -1691,6 +1490,8 @@ document.getElementById('contactClose').addEventListener('click', () => closeMod
   background: url('music/music-cover.webp') center / cover no-repeat;
   filter: blur(80px) brightness(0.45) saturate(1.4);
 }
+.mbl-red { width:58%; background:#EA0B0C; top:-10%; left:-10%; animation:mblOra 22s ease-in-out infinite; }
+.mbl-vio { width:58%; background:#8121E4; bottom:-10%; right:-10%; animation:mblBlu 28s ease-in-out infinite; }
 #playerClose {
   position: absolute; top: 24px; right: 24px;
   background: rgba(255,255,255,0.12); border: none;
@@ -1764,11 +1565,6 @@ document.getElementById('contactClose').addEventListener('click', () => closeMod
   animation: modalBackdropIn 0.35s ease both;
 }
 #aboutFullContent { padding: 24px; }
-#aboutFullBg {
-  position: absolute; inset: -10%;
-  background: url('about/sumit-photo.png') center / cover no-repeat;
-  filter: blur(80px) brightness(0.65) saturate(1.6);
-}
 #aboutFullClose {
   position: absolute; top: 24px; right: 24px;
   background: rgba(255,255,255,0.12); border: none;
@@ -1789,16 +1585,16 @@ document.getElementById('contactClose').addEventListener('click', () => closeMod
   animation: modalCardIn 0.45s 0.05s cubic-bezier(.22,1,.36,1) both;
 }
 #aboutFullName {
-  font-size: 28px; font-weight: 700; color: #fff;
-  letter-spacing: -0.8px; margin: 0 0 6px;
+  font-size: 32px; font-weight: 700; color: #fff;
+  letter-spacing: -0.8px; margin: 0 0 10px;
 }
 #aboutFullBody {
   display: flex; flex-direction: column; align-items: flex-start;
   width: fit-content; max-width: 80vw;
 }
 #aboutFullRole {
-  font-size: 15px; color: rgba(255,255,255,0.55);
-  letter-spacing: -0.2px; margin: 0;
+  font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.65;
+  letter-spacing: -0.2px; margin: 0 0 20px;
   width: 100%; text-align: center;
 }
 .af-divider {
@@ -1822,7 +1618,8 @@ document.getElementById('contactClose').addEventListener('click', () => closeMod
 </style>
 
 <div id="aboutFullModal">
-  <div id="aboutFullBg"></div>
+  <div class="modal-grad-bg"></div>
+  <div class="modal-blob-layer"><div class="mbl mbl-ora"></div><div class="mbl mbl-blu"></div></div>
   <button id="aboutFullClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
 
   <div id="aboutFullContent">
@@ -1849,6 +1646,7 @@ document.getElementById('contactClose').addEventListener('click', () => closeMod
 
 <div id="playerModal">
   <div id="playerBg"></div>
+  <div class="modal-blob-layer"><div class="mbl mbl-red"></div><div class="mbl mbl-vio"></div></div>
   <button id="playerClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
 
   <div id="playerContent">
