@@ -1296,6 +1296,7 @@ document.getElementById('aboutModal').addEventListener('click', e => {
 #musicCard .ab-name {
   font-size: 20px; letter-spacing: -0.5px;
 }
+.pr-list { display: flex; flex-direction: column; gap: 16px; }
 .pr-item {
   display: flex; align-items: center; gap: 12px;
   margin: 0 -12px;
@@ -1370,6 +1371,18 @@ document.getElementById('aboutModal').addEventListener('click', e => {
     <h2 class="ab-name">Playground</h2>
     <p class="ab-bio">Experiments, ideas, and things I'm building</p>
 
+    <div class="pr-list">
+    <a class="pr-item" href="https://sumitnarang.com/gym-cancel" target="_blank" rel="noopener">
+      <img class="pr-item-icon" src="playground/gym-cancel.png" alt="Cancel Gym">
+      <div class="pr-item-body">
+        <div class="pr-item-header">
+          <h3 class="pr-item-name">Cancel Gym</h3>
+          <img src="playground/external-link.svg" alt="External link" class="pr-ext-box">
+        </div>
+        <p class="pr-item-desc">Browse Dublin gyms ranked by how difficult they make it to cancel</p>
+      </div>
+    </a>
+
     <a class="pr-item" href="https://sumitnarang.com/roundabout" target="_blank" rel="noopener">
       <img class="pr-item-icon" src="playground/roundabout.png" alt="Roundabout">
       <div class="pr-item-body">
@@ -1380,6 +1393,7 @@ document.getElementById('aboutModal').addEventListener('click', e => {
         <p class="pr-item-desc">Master the madness of Ireland's roundabouts and prove your driving skill</p>
       </div>
     </a>
+    </div><!-- /.pr-list -->
 
   </div><!-- /#projectsCard -->
 </div>
