@@ -1247,16 +1247,33 @@ document.getElementById('aboutModal').addEventListener('click', e => {
   overflow: hidden;
   animation: modalBackdropIn 0.35s ease both;
 }
+/* Full-screen transparent scroll layer (above the fixed gradient background)
+   so scrolling works anywhere on screen, and `safe center` keeps the card
+   centered when it fits but reachable from the top when it overflows. */
+.projects-scroll {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: safe center;
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
+}
+.projects-scroll::-webkit-scrollbar { width: 0; height: 0; }
 #projectsCard {
   position: relative; z-index: 1;
-  width: 380px; max-width: 88vw;
+  flex-shrink: 0;
+  width: 404px; max-width: 88vw;
   font-family: 'Inter', sans-serif;
   animation: modalCardIn 0.45s 0.05s cubic-bezier(.22,1,.36,1) both;
+  /* Title, description and projects flow together, top to bottom */
+  padding: 56px 12px 72px;
 }
 #projectsCard .ab-name,
 #projectsCard .ab-bio {
   text-align: center;
 }
+#projectsCard .pr-list { margin-bottom: 0; gap: 14px; }
+#projectsCard .pr-item { padding: 14px; }
+#projectsCard .pr-item-icon { width: 56px; height: 56px; }
 #projectsClose {
   position: absolute; top: 24px; right: 24px;
   background: rgba(255,255,255,0.12); border: none;
@@ -1332,7 +1349,7 @@ document.getElementById('aboutModal').addEventListener('click', e => {
 }
 .pr-item-desc {
   font-size: 15px; font-weight: 400; color: rgba(255,255,255,0.70);
-  letter-spacing: -0.3px; margin: 8px 0 0; line-height: 20px;
+  letter-spacing: -0.3px; margin: 4px 0 0; line-height: 20px;
 }
 .modal-grad-bg { position:absolute; inset:0; background:linear-gradient(135deg,#c05210 0%,#07111e 48%,#07111e 52%,#1654cc 100%); background-size:300% 300%; animation:gradFlow 14s ease infinite; }
 @keyframes gradFlow {
@@ -1367,11 +1384,23 @@ document.getElementById('aboutModal').addEventListener('click', e => {
   <div class="modal-blob-layer"><div class="mbl mbl-ora"></div><div class="mbl mbl-blu"></div></div>
   <button id="projectsClose"><img src="icons/close.svg" alt="close" style="width:12px;height:12px;display:block;"></button>
 
+  <div class="projects-scroll">
   <div id="projectsCard">
     <h2 class="ab-name">Playground</h2>
     <p class="ab-bio">Experiments, ideas, and things I'm building</p>
 
     <div class="pr-list">
+    <a class="pr-item" href="https://sumitnarang.com/animate-icon" target="_blank" rel="noopener">
+      <img class="pr-item-icon" src="playground/svg-animate.png" alt="SVG Icon Animator">
+      <div class="pr-item-body">
+        <div class="pr-item-header">
+          <h3 class="pr-item-name">SVG Icon Animator</h3>
+          <img src="playground/external-link.svg" alt="External link" class="pr-ext-box">
+        </div>
+        <p class="pr-item-desc">Upload an SVG icon, animate it, and export ready-to-use CSS, GSAP, or GIF</p>
+      </div>
+    </a>
+
     <a class="pr-item" href="https://sumitnarang.com/luas" target="_blank" rel="noopener">
       <img class="pr-item-icon" src="playground/luas.png" alt="Luas Replay">
       <div class="pr-item-body">
@@ -1418,6 +1447,7 @@ document.getElementById('aboutModal').addEventListener('click', e => {
     </div><!-- /.pr-list -->
 
   </div><!-- /#projectsCard -->
+  </div><!-- /.projects-scroll -->
 </div>
 
 <style>
